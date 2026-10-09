@@ -1,0 +1,146 @@
+{
+  "instructors": [
+    {
+      "id": "190209",
+      "name": "ABDUL LATHEEF THRIKKANDIYOORIL",
+      "shortName": "ABDUL LATHEEF",
+      "category": "LMFM",
+      "vehicleType": "خفيفة (LM)",
+      "shift": "S1",
+      "shiftName": "الفترة الأولى (1 - 10)",
+      "shiftCode": "LMFM-S1",
+      "capacity": 20,
+      "occupied": 17,
+      "empty": 3,
+      "rate": 85,
+      "minSlot": 1,
+      "maxSlot": 10,
+      "note": "",
+      "reportPage": 1,
+      "slotsRows": [
+        {
+          "slotDisplay": "2",
+          "sat": "مشغولة",
+          "sun": "خالية"
+        },
+        {
+          "slotDisplay": "7",
+          "sat": "خالية",
+          "sun": "مشغولة"
+        },
+        {
+          "slotDisplay": "9",
+          "sat": "مشغولة",
+          "sun": "خالية"
+        }
+      ],
+      "fullSchedule": [
+        {
+          "slot": 1,
+          "sat": "occupied",
+          "sun": "occupied"
+        },
+        {
+          "slot": 2,
+          "sat": "occupied",
+          "sun": "empty"
+        },
+        {
+          "slot": 3,
+          "sat": "occupied",
+          "sun": "occupied"
+        },
+        {
+          "slot": 4,
+          "sat": "occupied",
+          "sun": "occupied"
+        },
+        {
+          "slot": 5,
+          "sat": "occupied",
+          "sun": "occupied"
+        },
+        {
+          "slot": 6,
+          "sat": "occupied",
+          "sun": "occupied"
+        },
+        {
+          "slot": 7,
+          "sat": "empty",
+          "sun": "occupied"
+        },
+        {
+          "slot": 8,
+          "sat": "occupied",
+          "sun": "occupied"
+        },
+        {
+          "slot": 9,
+          "sat": "occupied",
+          "sun": "empty"
+        },
+        {
+          "slot": 10,
+          "sat": "occupied",
+          "sun": "occupied"
+        },
+        {
+          "slot": 11,
+          "sat": "empty",
+          "sun": "empty"
+        },
+        {
+          "slot": 12,
+          "sat": "empty",
+          "sun": "empty"
+        },
+        {
+          "slot": 13,
+          "sat": "empty",
+          "sun": "empty"
+        },
+        {
+          "slot": 14,
+          "sat": "empty",
+          "sun": "empty"
+        },
+        {
+          "slot": 15,
+          "sat": "empty",
+          "sun": "empty"
+        },
+        {
+          "slot": 16,
+          "sat": "empty",
+          "sun": "empty"
+        },
+        {
+          "slot": 17,
+          "sat": "empty",
+          "sun": "empty"
+        },
+        {
+          "slot": 18,
+          "sat": "empty",
+          "sun": "empty"
+        },
+        {
+          "slot": 19,
+          "sat": "empty",
+          "sun": "empty"
+        },
+        {
+          "slot": 20,
+          "sat": "empty",
+          "sun": "empty"
+        }
+      ]
+    }
+  ],
+  "activeFileName": "avaliablity (1) 6.pdf",
+  "activeFileTime": "⚡ تم التحليل اللحظي: 08:54:33 م",
+  "lastUpdatedBy": "client_mossaxq",
+  "updatedAt": "2026-10-09T16:54:33.411Z",
+  "version": 101
+}
