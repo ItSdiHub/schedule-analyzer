@@ -534,8 +534,161 @@ const OFFICIAL_INSTRUCTORS = [
             { slot: 16, sat: "empty", sun: "occupied" },
             { slot: 17, sat: "occupied", sun: "occupied" }
         ]
+    },
+    // 10. Muhammad Junaid Taj Parwar (102463) - أوتوماتيك - الفترة الثانية (11 إلى 20)
+    {
+        id: "102463",
+        name: "Muhammad Junaid Taj Parwar",
+        shortName: "Muhammad Junaid",
+        category: "LMFA",
+        vehicleType: "خفيفة (LM)",
+        shift: "S2",
+        shiftName: "الفترة الثانية (11 - 20)",
+        shiftCode: "LMFA-S2",
+        capacity: 20,
+        occupied: 12,
+        empty: 8,
+        rate: 60.0,
+        minSlot: 11,
+        maxSlot: 20,
+        note: "",
+        reportPage: 5,
+        slotsRows: [
+            { slotDisplay: "12", sat: "خالية", sun: "خالية" },
+            { slotDisplay: "14", sat: "خالية", sun: "خالية" },
+            { slotDisplay: "16", sat: "خالية", sun: "خالية" },
+            { slotDisplay: "18", sat: "خالية", sun: "خالية" }
+        ],
+        fullSchedule: [
+            { slot: 11, sat: "occupied", sun: "occupied" },
+            { slot: 12, sat: "empty",    sun: "empty" },
+            { slot: 13, sat: "occupied", sun: "occupied" },
+            { slot: 14, sat: "empty",    sun: "empty" },
+            { slot: 15, sat: "occupied", sun: "occupied" },
+            { slot: 16, sat: "empty",    sun: "empty" },
+            { slot: 17, sat: "occupied", sun: "occupied" },
+            { slot: 18, sat: "empty",    sun: "empty" },
+            { slot: 19, sat: "occupied", sun: "occupied" },
+            { slot: 20, sat: "occupied", sun: "occupied" }
+        ]
+    },
+    // 11. Faizal Nisham Palakkal (105528) - عادي - الفترة الثانية (11 إلى 20)
+    {
+        id: "105528",
+        name: "Faizal Nisham Palakkal",
+        shortName: "Faizal Nisham",
+        category: "LMFM",
+        vehicleType: "خفيفة (LM)",
+        shift: "S2",
+        shiftName: "الفترة الثانية (11 - 20)",
+        shiftCode: "LMFM-S2",
+        capacity: 20,
+        occupied: 12,
+        empty: 8,
+        rate: 60.0,
+        minSlot: 11,
+        maxSlot: 20,
+        note: "",
+        reportPage: 6,
+        slotsRows: [
+            { slotDisplay: "13", sat: "خالية", sun: "خالية" },
+            { slotDisplay: "15", sat: "خالية", sun: "خالية" },
+            { slotDisplay: "17", sat: "خالية", sun: "خالية" },
+            { slotDisplay: "20", sat: "خالية", sun: "خالية" }
+        ],
+        fullSchedule: [
+            { slot: 11, sat: "occupied", sun: "occupied" },
+            { slot: 12, sat: "occupied", sun: "occupied" },
+            { slot: 13, sat: "empty",    sun: "empty" },
+            { slot: 14, sat: "occupied", sun: "occupied" },
+            { slot: 15, sat: "empty",    sun: "empty" },
+            { slot: 16, sat: "occupied", sun: "occupied" },
+            { slot: 17, sat: "empty",    sun: "empty" },
+            { slot: 18, sat: "occupied", sun: "occupied" },
+            { slot: 19, sat: "occupied", sun: "occupied" },
+            { slot: 20, sat: "empty",    sun: "empty" }
+        ]
+    },
+    // 12. Ahmed Mohamed Ahmed Ali (106284) - أوتوماتيك - الفترة الثانية (11 إلى 20)
+    {
+        id: "106284",
+        name: "Ahmed Mohamed Ahmed Ali",
+        shortName: "Ahmed Mohamed",
+        category: "LMFA",
+        vehicleType: "خفيفة (LM)",
+        shift: "S2",
+        shiftName: "الفترة الثانية (11 - 20)",
+        shiftCode: "LMFA-S2",
+        capacity: 20,
+        occupied: 14,
+        empty: 6,
+        rate: 70.0,
+        minSlot: 11,
+        maxSlot: 20,
+        note: "",
+        reportPage: 6,
+        slotsRows: [
+            { slotDisplay: "12", sat: "خالية", sun: "خالية" },
+            { slotDisplay: "15", sat: "خالية", sun: "خالية" },
+            { slotDisplay: "17", sat: "خالية", sun: "خالية" }
+        ],
+        fullSchedule: [
+            { slot: 11, sat: "occupied", sun: "occupied" },
+            { slot: 12, sat: "empty",    sun: "empty" },
+            { slot: 13, sat: "occupied", sun: "occupied" },
+            { slot: 14, sat: "occupied", sun: "occupied" },
+            { slot: 15, sat: "empty",    sun: "empty" },
+            { slot: 16, sat: "occupied", sun: "occupied" },
+            { slot: 17, sat: "empty",    sun: "empty" },
+            { slot: 18, sat: "occupied", sun: "occupied" },
+            { slot: 19, sat: "occupied", sun: "occupied" },
+            { slot: 20, sat: "occupied", sun: "occupied" }
+        ]
+    },
+    // 13. Mohammed Aref Ahmed Omar (200283) - أوتوماتيك - الفترة الأولى (1 إلى 10)
+    {
+        id: "200283",
+        name: "Mohammed Aref Ahmed Omar",
+        shortName: "Mohammed Aref",
+        category: "LMFA",
+        vehicleType: "خفيفة (LM)",
+        shift: "S1",
+        shiftName: "الفترة الأولى (1 - 10)",
+        shiftCode: "LMFA-S1",
+        capacity: 20,
+        occupied: 16,
+        empty: 4,
+        rate: 80.0,
+        minSlot: 1,
+        maxSlot: 10,
+        note: "",
+        reportPage: 7,
+        slotsRows: [
+            { slotDisplay: "6", sat: "خالية", sun: "خالية" },
+            { slotDisplay: "9", sat: "خالية", sun: "خالية" }
+        ],
+        fullSchedule: [
+            { slot: 1,  sat: "occupied", sun: "occupied" },
+            { slot: 2,  sat: "occupied", sun: "occupied" },
+            { slot: 3,  sat: "occupied", sun: "occupied" },
+            { slot: 4,  sat: "occupied", sun: "occupied" },
+            { slot: 5,  sat: "occupied", sun: "occupied" },
+            { slot: 6,  sat: "empty",    sun: "empty" },
+            { slot: 7,  sat: "occupied", sun: "occupied" },
+            { slot: 8,  sat: "occupied", sun: "occupied" },
+            { slot: 9,  sat: "empty",    sun: "empty" },
+            { slot: 10, sat: "occupied", sun: "occupied" }
+        ]
     }
 ];
+
+if (typeof window !== 'undefined') {
+    window.LM_TIME_SLOTS = LM_TIME_SLOTS;
+    window.HT_TIME_SLOTS = HT_TIME_SLOTS;
+    window.MC_TIME_SLOTS = MC_TIME_SLOTS;
+    window.SDI_CATEGORIES = SDI_CATEGORIES;
+    window.OFFICIAL_INSTRUCTORS = OFFICIAL_INSTRUCTORS;
+}
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { LM_TIME_SLOTS, HT_TIME_SLOTS, MC_TIME_SLOTS, SDI_CATEGORIES, OFFICIAL_INSTRUCTORS };

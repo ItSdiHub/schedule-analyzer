@@ -239,6 +239,10 @@ const SDIParser = {
     }
 };
 
+if (typeof window !== 'undefined') {
+    window.SDIParser = SDIParser;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { SDIParser };
 }

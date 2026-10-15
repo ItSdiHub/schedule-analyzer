@@ -172,11 +172,15 @@ const SDIPdfParser = {
      */
     buildOfficialInstructorsFromParsed(parsedList) {
         return parsedList.map((p, index) => {
-            // 1. تحديد الفئة من كود الدورة (LMFM, LMFA, MC, HT)
+            // 1. تحديد الفئة من كود الدورة (LMFM, LMFA, MC, HT) أو من الملاك المعتمد
             let category = "LMFM";
             let vehicleType = "خفيفة (LM)";
             let minSlot = 1;
-            let maxSlot = 20;
+            let maxSlot = 10;
+
+            const rosterEntry = (typeof SDIMasterRoster !== 'undefined') ? SDIMasterRoster.find(p.id || p.name) : null;
+            const isFem = rosterEntry ? (rosterEntry.gender === 'female') : false;
+            const isSup = rosterEntry ? (rosterEntry.role === 'supervisor' || rosterEntry.shift === 'SUP') : false;
 
             const firstCourse = p.students[0]?.course || "";
             if (/^LMFA/i.test(firstCourse)) {
@@ -199,7 +203,13 @@ const SDIPdfParser = {
             let shiftName = "الفترة الأولى (1 - 10)";
             let shiftCode = `${category}-S1`;
 
-            if (category === "MC") {
+            if (isSup) {
+                shift = "SUP";
+                shiftName = "مشرف (Supervisor) - تكليف عند الحاجة";
+                shiftCode = `SUP-${category}`;
+                minSlot = 1;
+                maxSlot = category === "HT" ? 24 : 20;
+            } else if (category === "MC") {
                 shift = "FIX";
                 shiftName = "فترة ثابتة (6 - 17)";
                 shiftCode = "MC-FIX";
@@ -224,24 +234,33 @@ const SDIPdfParser = {
                 // مركبة خفيفة (LM)
                 const hasEvening = p.students.some(s => s.slot >= 11);
                 const hasMorning = p.students.some(s => s.slot <= 10);
+                const isS2 = (hasEvening && !hasMorning) || (p.students.length > 0 && Math.max(...p.students.map(s => s.slot)) > 10);
 
-                if (hasEvening && !hasMorning) {
-                    shift = "S2";
-                    shiftName = "الفترة الثانية (11 - 20)";
-                    shiftCode = `${category}-S2`;
-                    minSlot = 11;
-                    maxSlot = 20;
-                } else {
-                    const maxSlotEncountered = p.students.length > 0 ? Math.max(...p.students.map(s => s.slot)) : 1;
-                    if (maxSlotEncountered > 10) {
+                if (isFem) {
+                    // قاعدة المدربات السيدات: 9 حصص يومياً (السعة 18 حصة)
+                    if (isS2) {
                         shift = "S2";
-                        shiftName = "الفترة الثانية (11 - 20)";
+                        shiftName = "الفترة المسائية للسيدات (11 - 19) [9 حصص]";
+                        shiftCode = `${category}-S2-F`;
+                        minSlot = 11;
+                        maxSlot = 19;
+                    } else {
+                        shift = "S1";
+                        shiftName = "الفترة الصباحية للسيدات (1 - 9) [9 حصص]";
+                        shiftCode = `${category}-S1-F`;
+                        minSlot = 1;
+                        maxSlot = 9;
+                    }
+                } else {
+                    if (isS2) {
+                        shift = "S2";
+                        shiftName = "الفترة الثانية (11 - 20) [10 حصص]";
                         shiftCode = `${category}-S2`;
                         minSlot = 11;
                         maxSlot = 20;
                     } else {
                         shift = "S1";
-                        shiftName = "الفترة الأولى (1 - 10)";
+                        shiftName = "الفترة الأولى (1 - 10) [10 حصص]";
                         shiftCode = `${category}-S1`;
                         minSlot = 1;
                         maxSlot = 10;
@@ -258,7 +277,9 @@ const SDIPdfParser = {
                 fullSchedule.push({
                     slot: s,
                     sat: "empty",
-                    sun: "empty"
+                    sun: "empty",
+                    origSat: "empty",
+                    origSun: "empty"
                 });
             }
 
@@ -268,11 +289,15 @@ const SDIPdfParser = {
                 if (sObj) {
                     if (st.days === "SAT-MON-WED") {
                         sObj.sat = "occupied";
+                        sObj.origSat = "occupied";
                     } else if (st.days === "SUN-TUE-THU") {
                         sObj.sun = "occupied";
+                        sObj.origSun = "occupied";
                     } else if (st.days === "SAT-THU") {
                         sObj.sat = "occupied";
+                        sObj.origSat = "occupied";
                         sObj.sun = "occupied";
+                        sObj.origSun = "occupied";
                     }
                 }
             });
@@ -280,21 +305,37 @@ const SDIPdfParser = {
             // 5. حساب الإشغال والحصص الفارغة ضمن فترة عمل وردية المدرب
             let occCount = 0;
             let empCount = 0;
-            const shiftSlots = fullSchedule.filter(s => s.slot >= minSlot && s.slot <= maxSlot);
-            shiftSlots.forEach(s => {
-                if (s.sat === "occupied") occCount++; else empCount++;
-                if (s.sun === "occupied") occCount++; else empCount++;
-            });
-            const cap = occCount + empCount;
-            const rate = cap > 0 ? parseFloat(((occCount / cap) * 100).toFixed(1)) : 0.0;
+            let cap = 0;
+            let rate = 0.0;
+
+            if (isSup) {
+                fullSchedule.forEach(s => {
+                    if (s.sat === "occupied") occCount++;
+                    if (s.sun === "occupied") occCount++;
+                });
+                cap = occCount;
+                empCount = 0;
+                rate = occCount > 0 ? 100.0 : 0.0;
+            } else {
+                const shiftSlots = fullSchedule.filter(s => s.slot >= minSlot && s.slot <= maxSlot);
+                shiftSlots.forEach(s => {
+                    if (s.sat === "occupied") occCount++; else empCount++;
+                    if (s.sun === "occupied") occCount++; else empCount++;
+                });
+                cap = occCount + empCount;
+                rate = cap > 0 ? parseFloat(((occCount / cap) * 100).toFixed(1)) : 0.0;
+            }
 
             // 6. توليد صفوف الحصص الفارغة للتقرير الثاني
-            const slotsRows = SDIPdfParser.generateEmptySlotsRows(fullSchedule, category, shift);
+            const slotsRows = SDIPdfParser.generateEmptySlotsRows(fullSchedule, category, shift, isFem ? 'female' : 'male');
 
             return {
                 id: p.id,
                 name: p.name,
                 shortName: p.shortName,
+                gender: isFem ? 'female' : 'male',
+                role: isSup ? 'supervisor' : 'instructor',
+                isSupervisor: isSup,
                 category: category,
                 vehicleType: vehicleType,
                 shift: shift,
@@ -314,26 +355,57 @@ const SDIPdfParser = {
         });
     },
 
-    generateEmptySlotsRows(schedule, category = "LMFM", shift = "S1") {
+    generateEmptySlotsRows(schedule, category = "LMFM", shift = "S1", gender = "male") {
+        let isFem = (gender === "female");
+
         if (typeof category === 'number') {
             const minSlot = category;
             const maxSlot = shift;
             if (minSlot >= 11) {
                 shift = 'S2';
                 category = 'LMFM';
+                isFem = (maxSlot === 19);
             } else if (minSlot === 6 && maxSlot === 17) {
                 category = 'MC';
                 shift = 'FIX';
             } else {
                 shift = 'S1';
                 category = 'LMFM';
+                isFem = (maxSlot === 9);
             }
         }
+
+        if (shift === 'SUP') {
+            // المشرف / السوبرفايزر: ليس لديه أي حصص فارغة
+            return [];
+        }
+
+        if (!schedule) return [];
+        let list = [];
+        if (Array.isArray(schedule)) {
+            list = schedule;
+        } else if (typeof schedule === 'object' && (schedule['sat-mon-wed'] || schedule['sun-tue-thu'])) {
+            const slotsMap = new Map();
+            (schedule['sat-mon-wed'] || []).forEach(s => {
+                slotsMap.set(s.slot, { slot: s.slot, sat: s.occupied ? 'occupied' : 'empty', sun: 'empty' });
+            });
+            (schedule['sun-tue-thu'] || []).forEach(s => {
+                if (slotsMap.has(s.slot)) {
+                    slotsMap.get(s.slot).sun = s.occupied ? 'occupied' : 'empty';
+                } else {
+                    slotsMap.set(s.slot, { slot: s.slot, sat: 'empty', sun: s.occupied ? 'occupied' : 'empty' });
+                }
+            });
+            list = Array.from(slotsMap.values()).sort((a, b) => a.slot - b.slot);
+        } else {
+            return [];
+        }
+
         const rows = [];
 
         if (category === "MC") {
             // الدراجة النارية: الحصص من 6 إلى 17 فقط
-            schedule.filter(s => s.slot >= 6 && s.slot <= 17).forEach(s => {
+            list.filter(s => s.slot >= 6 && s.slot <= 17).forEach(s => {
                 if (s.sat === "empty" || s.sun === "empty") {
                     rows.push({
                         slotDisplay: String(s.slot),
@@ -348,7 +420,7 @@ const SDIPdfParser = {
         if (category === "HT") {
             // الشاحنة الثقيلة: إزالة الحصص التي ليست في فترة عمله
             if (shift === "S1") {
-                schedule.filter(s => s.slot >= 1 && s.slot <= 12).forEach(s => {
+                list.filter(s => s.slot >= 1 && s.slot <= 12).forEach(s => {
                     if (s.sat === "empty" || s.sun === "empty") {
                         rows.push({
                             slotDisplay: String(s.slot),
@@ -358,7 +430,7 @@ const SDIPdfParser = {
                     }
                 });
             } else {
-                schedule.filter(s => s.slot >= 13 && s.slot <= 24).forEach(s => {
+                list.filter(s => s.slot >= 13 && s.slot <= 24).forEach(s => {
                     if (s.sat === "empty" || s.sun === "empty") {
                         rows.push({
                             slotDisplay: String(s.slot),
@@ -373,8 +445,9 @@ const SDIPdfParser = {
 
         // المركبة الخفيفة (LM): إزالة الحصص التي ليست في فترة عمله
         if (shift === "S1") {
-            // الفترة الصباحية الأولى: فقط الحصص 1 إلى 10 (تمت إزالة وحذف الحصص 11 إلى 20 تماماً)
-            schedule.filter(s => s.slot >= 1 && s.slot <= 10).forEach(s => {
+            // الفترة الصباحية: الحصص 1 إلى 9 للسيدات، 1 إلى 10 للذكور
+            const maxSlotBound = isFem ? 9 : 10;
+            list.filter(s => s.slot >= 1 && s.slot <= maxSlotBound).forEach(s => {
                 if (s.sat === "empty" || s.sun === "empty") {
                     rows.push({
                         slotDisplay: String(s.slot),
@@ -384,8 +457,9 @@ const SDIPdfParser = {
                 }
             });
         } else {
-            // الفترة المسائية الثانية: فقط الحصص 11 إلى 20 (تمت إزالة وحذف الحصص 1 إلى 10 تماماً)
-            schedule.filter(s => s.slot >= 11 && s.slot <= 20).forEach(s => {
+            // الفترة المسائية: الحصص 11 إلى 19 للسيدات، 11 إلى 20 للذكور
+            const maxSlotBound = isFem ? 19 : 20;
+            list.filter(s => s.slot >= 11 && s.slot <= maxSlotBound).forEach(s => {
                 if (s.sat === "empty" || s.sun === "empty") {
                     rows.push({
                         slotDisplay: String(s.slot),
@@ -399,6 +473,10 @@ const SDIPdfParser = {
         return rows;
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.SDIPdfParser = SDIPdfParser;
+}
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { SDIPdfParser };

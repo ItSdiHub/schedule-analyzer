@@ -27,7 +27,7 @@ if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// تحميل البيانات الافتراضية الأولية من sampleData.js
+// تحميل البيانات الافتراضية الأولية من sampleData.js و sampleDayPlan.js
 let defaultInstructors = [];
 try {
     const { OFFICIAL_INSTRUCTORS } = require('./js/sampleData.js');
@@ -36,11 +36,30 @@ try {
     console.error('Could not load sampleData.js:', e.message);
 }
 
+let defaultDayPlan = null;
+try {
+    const { DEFAULT_DAY_PLAN_DATA } = require('./js/sampleDayPlan.js');
+    defaultDayPlan = DEFAULT_DAY_PLAN_DATA;
+} catch (e) {
+    console.error('Could not load sampleDayPlan.js:', e.message);
+}
+
+let SDIMasterRoster = null;
+try {
+    const rosterModule = require('./js/masterRoster.js');
+    SDIMasterRoster = rosterModule.SDIMasterRoster;
+} catch (e) {
+    console.error('Could not load masterRoster.js:', e.message);
+}
+
 // الحالة المركزية في الذاكرة
 let appState = {
     instructors: defaultInstructors,
+    dayPlan: defaultDayPlan,
     activeFileName: "Instructor Availability.pdf (الملف الرسمي المعتمد)",
     activeFileTime: "⚡ تم التحليل اللحظي المباشر",
+    dayPlanFileName: defaultDayPlan?.fileName || "Instructor Day Plan.pdf",
+    dayPlanFileTime: "⚡ تم التحليل اللحظي المباشر",
     lastUpdatedBy: "نظام SDI المعتمد",
     updatedAt: new Date().toISOString(),
     version: 1
@@ -53,6 +72,21 @@ if (fs.existsSync(STATE_FILE)) {
         const parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.instructors) && parsed.instructors.length > 0) {
             appState = parsed;
+            if (!appState.dayPlan && defaultDayPlan) {
+                appState.dayPlan = defaultDayPlan;
+                appState.dayPlanFileName = defaultDayPlan.fileName || "Instructor Day Plan.pdf (الملف الرسمي المعتمد)";
+                appState.dayPlanFileTime = "⚡ تم التحليل اللحظي المباشر";
+            }
+            if (appState.instructors.length < 5 && defaultInstructors.length > appState.instructors.length) {
+                appState.instructors = JSON.parse(JSON.stringify(defaultInstructors));
+            }
+            if (SDIMasterRoster && Array.isArray(appState.instructors)) {
+                appState.instructors.forEach(inst => {
+                    if (SDIMasterRoster.isSupervisor(inst)) {
+                        SDIMasterRoster.pruneSupervisorSchedule(inst);
+                    }
+                });
+            }
             console.log(`[SDI Server] Loaded persistent state with ${appState.instructors.length} instructors (v${appState.version}).`);
         }
     } catch (err) {
@@ -134,6 +168,9 @@ const server = http.createServer((req, res) => {
                     appState.instructors = data.instructors;
                     if (data.activeFileName) appState.activeFileName = data.activeFileName;
                     if (data.activeFileTime) appState.activeFileTime = data.activeFileTime;
+                    if (data.dayPlan !== undefined) appState.dayPlan = data.dayPlan;
+                    if (data.dayPlanFileName) appState.dayPlanFileName = data.dayPlanFileName;
+                    if (data.dayPlanFileTime) appState.dayPlanFileTime = data.dayPlanFileTime;
                     appState.lastUpdatedBy = data.user || data.clientId || 'مستخدم';
                     appState.updatedAt = new Date().toISOString();
                     appState.version = (appState.version || 1) + 1;
@@ -323,8 +360,18 @@ wss.on('connection', (ws, req) => {
             if (data.type === 'SYNC_STATE') {
                 if (data.payload && Array.isArray(data.payload.instructors)) {
                     appState.instructors = data.payload.instructors;
+                    if (SDIMasterRoster && Array.isArray(appState.instructors)) {
+                        appState.instructors.forEach(inst => {
+                            if (SDIMasterRoster.isSupervisor(inst)) {
+                                SDIMasterRoster.pruneSupervisorSchedule(inst);
+                            }
+                        });
+                    }
                     if (data.payload.activeFileName) appState.activeFileName = data.payload.activeFileName;
                     if (data.payload.activeFileTime) appState.activeFileTime = data.payload.activeFileTime;
+                    if (data.payload.dayPlan !== undefined) appState.dayPlan = data.payload.dayPlan;
+                    if (data.payload.dayPlanFileName) appState.dayPlanFileName = data.payload.dayPlanFileName;
+                    if (data.payload.dayPlanFileTime) appState.dayPlanFileTime = data.payload.dayPlanFileTime;
                     appState.lastUpdatedBy = data.userName || ws.clientId;
                     appState.updatedAt = new Date().toISOString();
                     appState.version = (appState.version || 1) + 1;
