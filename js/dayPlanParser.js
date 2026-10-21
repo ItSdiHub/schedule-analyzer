@@ -42,6 +42,7 @@ const SDIDayPlanParser = {
         const pdfDoc = await loadingTask.promise;
 
         const instructorsPlans = [];
+        const parsedWarnings = [];
         let currentInstructor = null;
 
         for (let p = 1; p <= pdfDoc.numPages; p++) {
@@ -152,14 +153,25 @@ const SDIDayPlanParser = {
                             }
                         }
 
-                        // قاعدة الحصص المزدوجة: ممنوع إعطاء أكثر من حصتين (2 حصة) للمتدرب الواحد يومياً
+                        // قاعدة الحصص المزدوجة والحد الأقصى: ممنوع إعطاء أكثر من حصتين (2 حصة) للمتدرب الواحد يومياً
                         const currentStudentSlots = parsedSessions.filter(s => 
                             (cleanStudentId && s.studentId === cleanStudentId) ||
                             (cleanStudentName && s.studentName && s.studentName.replace(/\(حصة مزدوجة تابعة\)\s*/g, '').trim() === cleanStudentName)
                         );
 
                         if (currentStudentSlots.length >= 2) {
-                            // المتدرب وصل بالفعل إلى الحد الأقصى المعتمد (حصتان يومياً)
+                            // المتدرب وصل بالفعل إلى الحد الأقصى المعتمد (حصتان يومياً) - يمنع إعطاؤه أي حصة إضافية ويجب تحذير المستخدم
+                            parsedWarnings.push({
+                                type: 'STUDENT_LIMIT_EXCEEDED',
+                                studentName: cleanStudentName,
+                                studentId: cleanStudentId,
+                                slot: slotNum,
+                                instructorId: instId,
+                                instructorName: instName,
+                                course: courseCode,
+                                messageAr: `⚠️ خطأ وتنبيه رسمي: تم رصد محاولة إعطاء المتدرب (${cleanStudentName} - #${cleanStudentId || 'بدون كود'}) حصة إضافية (حصة ${slotNum}) رغم وصوله للحد الأقصى المعتمد (حصتان فقط يومياً). تم استبعاد الحصة الزائدة وفق لوائح معهد الشارقة للسياقة.`,
+                                messageEn: `⚠️ Policy Warning: Blocked extra class (Slot ${slotNum}) for student (${cleanStudentName} - #${cleanStudentId || 'N/A'}) who already reached 2 sessions.`
+                            });
                             return;
                         }
 
@@ -179,7 +191,8 @@ const SDIDayPlanParser = {
 
                         // تطبيق قاعدة الحصة المزدوجة (D):
                         // الحصة المزدوجة تعني حصتين متتاليتين فقط لنفس المتدرب (S و S+1)
-                        // نضيف S+1 كحصة تابعة فقط إذا لم يكن للطالب حصة أخرى مسجلة اليوم ولم تحجز S+1 بعد
+                        // إذا كان لدى الطالب 0 حصص سابقة: يُعطى S و S+1 (حصتان فقط)
+                        // إذا كان لدى الطالب حصة سابقة واحدة بالفعل: يمنع إعطاؤه S+1 لأن ذلك يجعله 3 حصص وهو خطأ جسيم
                         if (isDouble && currentStudentSlots.length === 0) {
                             const nextSlot = slotNum + 1;
                             const existingNext = parsedSessions.find(s => s.slot === nextSlot);
@@ -205,6 +218,19 @@ const SDIDayPlanParser = {
                                 existingNext.isDoublePart2 = true;
                                 existingNext.parentSlot = slotNum;
                             }
+                        } else if (isDouble && currentStudentSlots.length === 1) {
+                            // تنبيه: الطالب لديه حصة واحدة سابقة والحصة المسجلة الآن D، فيُمنح حصة slotNum فقط ليصل لحصتين ويُمنع من الحصة الثالثة
+                            parsedWarnings.push({
+                                type: 'DOUBLE_EXCEEDED_LIMIT',
+                                studentName: cleanStudentName,
+                                studentId: cleanStudentId,
+                                slot: slotNum,
+                                instructorId: instId,
+                                instructorName: instName,
+                                course: courseCode,
+                                messageAr: `⚠️ خطأ وتنبيه رسمي: الحصة ${slotNum} مسجلة كحصة مزدوجة (D) للمتدرب (${cleanStudentName}) ولكن لديه حصة أخرى مسجلة. وفقاً لقاعدة (2 حصة فقط للشخص)، تم الاكتفاء بحصة ${slotNum} ومنع إضافة حصة تابعة تجنباً لإعطائه 3 حصص.`,
+                                messageEn: `⚠️ Policy Warning: Slot ${slotNum} is Double (D) for student (${cleanStudentName}) with an existing slot. Capped at 2 slots; Part 2 blocked.`
+                            });
                         }
                     }
                 }
@@ -265,7 +291,7 @@ const SDIDayPlanParser = {
             }
         }
 
-        return SDIDayPlanParser.finalizeDayPlan(instructorsPlans, file.name);
+        return SDIDayPlanParser.finalizeDayPlan(instructorsPlans, file.name, parsedWarnings);
     },
 
     /**
@@ -292,6 +318,7 @@ const SDIDayPlanParser = {
                     }
 
                     const instructorsMap = {};
+                    const parsedWarnings = [];
                     const header = rows[0].map(h => String(h || '').trim());
 
                     // تحديد الفهارس
@@ -363,13 +390,23 @@ const SDIDayPlanParser = {
                             }
                         }
 
-                        // قاعدة الحصص المزدوجة: ممنوع إعطاء أكثر من حصتين (2 حصة) للمتدرب الواحد يومياً
+                        // قاعدة الحصص المزدوجة والحد الأقصى: ممنوع إعطاء أكثر من حصتين (2 حصة) للمتدرب الواحد يومياً
                         const currentStudentSlots = instructorsMap[instId].sessions.filter(s => 
                             (cleanStudentId && s.studentId === cleanStudentId) ||
                             (cleanStudentName && s.studentName && s.studentName.replace(/\(حصة مزدوجة تابعة\)\s*/g, '').trim() === cleanStudentName)
                         );
 
                         if (currentStudentSlots.length >= 2) {
+                            parsedWarnings.push({
+                                type: 'STUDENT_LIMIT_EXCEEDED',
+                                studentName: cleanStudentName,
+                                studentId: cleanStudentId,
+                                slot: slotNum,
+                                instructorId: instId,
+                                course: courseVal,
+                                messageAr: `⚠️ خطأ وتنبيه رسمي: تم رصد محاولة إعطاء المتدرب (${cleanStudentName} - #${cleanStudentId || 'بدون كود'}) حصة إضافية (حصة ${slotNum}) رغم وصوله للحد الأقصى المعتمد (حصتان يومياً). تم استبعاد الحصة الزائدة وفق لوائح معهد الشارقة للسياقة.`,
+                                messageEn: `⚠️ Policy Warning: Blocked extra class (Slot ${slotNum}) for student (${cleanStudentName} - #${cleanStudentId || 'N/A'}) who already reached 2 sessions.`
+                            });
                             continue;
                         }
 
@@ -413,11 +450,22 @@ const SDIDayPlanParser = {
                                 existingNext.isDoublePart2 = true;
                                 existingNext.parentSlot = slotNum;
                             }
+                        } else if (isDouble && currentStudentSlots.length === 1) {
+                            parsedWarnings.push({
+                                type: 'DOUBLE_EXCEEDED_LIMIT',
+                                studentName: cleanStudentName,
+                                studentId: cleanStudentId,
+                                slot: slotNum,
+                                instructorId: instId,
+                                course: courseVal,
+                                messageAr: `⚠️ خطأ وتنبيه رسمي: الحصة ${slotNum} مسجلة كحصة مزدوجة (D) للمتدرب (${cleanStudentName}) ولكن لديه حصة أخرى مسجلة. وفقاً لقاعدة (2 حصة فقط للشخص)، تم الاكتفاء بحصة ${slotNum} ومنع إضافة حصة تابعة تجنباً لإعطائه 3 حصص.`,
+                                messageEn: `⚠️ Policy Warning: Slot ${slotNum} is Double (D) for student (${cleanStudentName}) with an existing slot. Capped at 2 slots; Part 2 blocked.`
+                            });
                         }
                     }
 
                     const list = Object.values(instructorsMap);
-                    resolve(SDIDayPlanParser.finalizeDayPlan(list, file.name));
+                    resolve(SDIDayPlanParser.finalizeDayPlan(list, file.name, parsedWarnings));
                 } catch (err) {
                     reject(err);
                 }
@@ -431,7 +479,7 @@ const SDIDayPlanParser = {
     /**
      * إكمال وحساب الإحصائيات العامة لخطة اليوم
      */
-    finalizeDayPlan(instructorsPlans, fileName) {
+    finalizeDayPlan(instructorsPlans, fileName, initialWarnings = []) {
         // تصفية أي مدربين أشباح أو بدون اسم أو بدون رقم وظيفي معتمد
         const validPlans = (instructorsPlans || []).filter(plan => {
             if (!plan) return false;
@@ -446,38 +494,62 @@ const SDIDayPlanParser = {
         }
         instructorsPlans = validPlans;
 
-        let totalSessions = 0;
-        let totalYardSessions = 0;
-        let totalRoadSessions = 0;
-        let totalDoubleSessions = 0;
-        let totalRegularSessions = 0;
+        const globalWarnings = [...(initialWarnings || [])];
+        const globalStudentSlotsMap = new Map();
 
+        // 1. فحص وتطبيق قاعدة الحد الأقصى للمتدرب (حصتان فقط يومياً) عبر الخطة بأكملها وكافة المدربين
         instructorsPlans.forEach(plan => {
-            // التحقق وتطبيق قاعدة الحصص المزدوجة والحد الأقصى للمتدرب (حصتان يومياً فقط)
-            plan.sessions = SDIDayPlanParser.enforceStudentDailyLimit(plan.sessions);
+            // أولاً فحص وتطبيق الحد الأقصى داخل جدول المدرب نفسه
+            plan.sessions = SDIDayPlanParser.enforceStudentDailyLimit(plan.sessions, globalWarnings, plan);
 
-            // استيراد بيانات الملاك التدريبي المعتمد إن وجدت
+            // ثانياً فحص التكرار وتجاوز الحد الأقصى عبر المدربين الآخرين
+            const verifiedSessions = [];
+            plan.sessions.forEach(s => {
+                const rawName = s.studentName ? s.studentName.replace(/\(حصة مزدوجة تابعة\)\s*/g, '').trim() : '';
+                const stKey = (s.studentId && s.studentId.trim()) ? s.studentId.trim() : rawName;
+
+                if (stKey) {
+                    const existingCount = globalStudentSlotsMap.get(stKey) || 0;
+                    if (existingCount >= 2) {
+                        // المتدرب وصل بالفعل إلى الحد الأقصى المعتمد (حصتان يومياً)
+                        globalWarnings.push({
+                            type: 'STUDENT_LIMIT_EXCEEDED',
+                            studentName: rawName || stKey,
+                            studentId: s.studentId || '',
+                            slot: s.slot,
+                            instructorId: plan.instructorId,
+                            instructorName: plan.shortName || plan.instructorName,
+                            messageAr: `⚠️ خطأ وتنبيه رسمي: تم استبعاد الحصة ${s.slot} للمتدرب (${rawName || stKey}) لدى المدرب (${plan.shortName || plan.instructorName})؛ لتجاوز الحد الأقصى المعتمد (حصتان فقط للمتدرب يومياً وفق لوائح المعهد).`,
+                            messageEn: `⚠️ Policy Warning: Blocked extra session (Slot ${s.slot}) for student (${rawName || stKey}) with instructor (${plan.shortName || plan.instructorName}) exceeding 2 daily sessions limit.`
+                        });
+                        return; // لا تضف الحصة
+                    }
+                    globalStudentSlotsMap.set(stKey, existingCount + 1);
+                }
+                verifiedSessions.push(s);
+            });
+            plan.sessions = verifiedSessions;
+
+            // استيراد بيانات الملاك التدريبي المعتمد وقواعد المشرف
             if (typeof SDIMasterRoster !== 'undefined') {
+                const isSup = SDIMasterRoster.isSupervisor(plan);
                 const rosterEntry = SDIMasterRoster.find(plan.instructorId || plan.instructorName);
                 if (rosterEntry) {
                     plan.gender = rosterEntry.gender;
                     plan.role = rosterEntry.role;
-                    plan.isSupervisor = (rosterEntry.role === 'supervisor');
+                    plan.isSupervisor = (rosterEntry.role === 'supervisor' || rosterEntry.shift === 'SUP' || isSup);
                     plan.shiftCode = rosterEntry.shiftCode;
+                } else if (isSup) {
+                    plan.isSupervisor = true;
+                    plan.role = 'supervisor';
+                    plan.shift = 'SUP';
+                    const cat = plan.sessions[0]?.course?.startsWith('LMFA') ? 'LMFA' : (plan.sessions[0]?.course?.startsWith('MC') ? 'MC' : (plan.sessions[0]?.course?.startsWith('HT') ? 'HT' : 'LMFM'));
+                    plan.shiftCode = `SUP-${cat}`;
                 }
             }
 
             // ترتيب الحصص
             plan.sessions.sort((a, b) => a.slot - b.slot);
-
-            plan.sessions.forEach(s => {
-                totalSessions++;
-                if (s.location === 'Y') totalYardSessions++;
-                else totalRoadSessions++;
-
-                if (s.isDouble) totalDoubleSessions++;
-                else totalRegularSessions++;
-            });
 
             // إحصائيات المدرب
             plan.yardCount = plan.sessions.filter(s => s.location === 'Y').length;
@@ -486,13 +558,43 @@ const SDIDayPlanParser = {
             plan.totalCount = plan.sessions.length;
         });
 
+        let totalSessions = 0;
+        let totalYardSessions = 0;
+        let totalRoadSessions = 0;
+        let totalDoubleSessions = 0;
+        let totalRegularSessions = 0;
+
+        instructorsPlans.forEach(plan => {
+            plan.sessions.forEach(s => {
+                totalSessions++;
+                if (s.location === 'Y') totalYardSessions++;
+                else totalRoadSessions++;
+
+                if (s.isDouble) totalDoubleSessions++;
+                else totalRegularSessions++;
+            });
+        });
+
         const defaultDate = instructorsPlans[0]?.date || new Date().toLocaleDateString('ar-AE');
+
+        // إزالة أي تحذيرات مكررة بنفس رقم الحصة والمتدرب
+        const uniqueWarnings = [];
+        const seenWarnKeys = new Set();
+        globalWarnings.forEach(w => {
+            const key = `${w.type}_${w.studentId || w.studentName}_${w.slot}_${w.instructorId || ''}`;
+            if (!seenWarnKeys.has(key)) {
+                seenWarnKeys.add(key);
+                uniqueWarnings.push(w);
+            }
+        });
 
         return {
             success: true,
             fileName: fileName,
             date: defaultDate,
             instructors: instructorsPlans,
+            warnings: uniqueWarnings,
+            hasWarnings: uniqueWarnings.length > 0,
             stats: {
                 totalInstructors: instructorsPlans.length,
                 totalSessions: totalSessions,
@@ -604,7 +706,7 @@ const SDIDayPlanParser = {
      * - ممنوع إعطاء أكثر من حصتين (2 حصة) للمتدرب الواحد يومياً.
      * - منع أي تكرار أو تسلسل غير مقصود لحصص تالية.
      */
-    enforceStudentDailyLimit(sessions) {
+    enforceStudentDailyLimit(sessions, warningsOut = null, planContext = null) {
         if (!Array.isArray(sessions) || sessions.length === 0) return [];
         
         // 1. إزالة أي تكرار لنفس رقم الحصة
@@ -637,7 +739,18 @@ const SDIDayPlanParser = {
                 const curCount = studentCountMap.get(stKey) || 0;
                 if (curCount >= 2) {
                     // المتدرب وصل بالفعل إلى الحد الأقصى المعتمد (حصتان يومياً)
-                    console.warn(`[SDIDayPlanParser] تم استبعاد الحصة ${s.slot} للمتدرب ${stKey}؛ تجاوز الحد الأقصى (حصتان يومياً).`);
+                    if (warningsOut && Array.isArray(warningsOut)) {
+                        warningsOut.push({
+                            type: 'STUDENT_LIMIT_EXCEEDED',
+                            studentName: rawName || stKey,
+                            studentId: s.studentId || '',
+                            slot: s.slot,
+                            instructorId: planContext?.instructorId || '',
+                            instructorName: planContext?.shortName || planContext?.instructorName || '',
+                            messageAr: `⚠️ خطأ وتنبيه رسمي: تم استبعاد الحصة ${s.slot} للمتدرب (${rawName || stKey})؛ تجاوز الحد الأقصى (حصتان يومياً فقط).`,
+                            messageEn: `⚠️ Policy Warning: Excluded slot ${s.slot} for student (${rawName || stKey}); exceeded 2 daily classes limit.`
+                        });
+                    }
                     continue;
                 }
                 studentCountMap.set(stKey, curCount + 1);

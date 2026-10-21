@@ -4,8 +4,8 @@
  * 
  * القواعد المعتمدة وفق توجيهات الإدارة:
  * 1. المدربات السيدات: 18 حصة في المجموع الكلي (9 حصص يومياً خلال كل شفت: 1-9 للصباحي أو 11-19 للمسائي).
- * 2. المشرفون (Supervisors): ليس لهم جدول تدريبي رسمي ثابت (تكليف عند الحاجة والطارئ فقط)،
- *    لذا عندما تسجل لهم أي حصة تكون نسبة إشغالهم نظرياً 100% دائماً والسعة = عدد الحصص المسندة ولا توجد حصص خالية.
+ * 2. المشرفون (Supervisors): ليس لهم جدول تدريبي رسمي ثابت (جدولهم خالي من الحصص)،
+ *    لذا لا تحسب للمشرف إلا الحصص المسجلة بالنظام فقط، والسعة تساوي عدد الحصص المسجلة فعلياً وبدون أي حصص خالية (empty = 0).
  * 3. المدربون الرسميون الذكور: 10 حصص يومياً (1-10 للصباحي أو 11-20 للمسائي) والسعة الكلية 20 حصة.
  * 4. الشاحنة الثقيلة (HT): 12 حصة يومياً (1-12 أو 13-24) والسعة الكلية 24 حصة.
  * 5. الدراجة النارية (MC): فترة ثابتة (6-17) 12 حصة يومياً والسعة الكلية 24 حصة.
@@ -14,7 +14,7 @@
  */
 
 const DEFAULT_MASTER_ROSTER = [
-    // --- 1. المشرفون (Supervisors) - تكليف طارئ عند الحاجة (إشغال 100% - بدون جدول ثابت) ---
+    // --- 1. المشرفون (Supervisors) - بدون جدول تدريب ثابت (الحصص المسجلة فقط - بدون حصص فارغة) ---
     {
         id: "100101",
         name: "Tariq Al Shamsi",
@@ -433,8 +433,8 @@ const SDIMasterRoster = {
                 maxSlot: cat === 'HT' ? 24 : 20,
                 dailyLimit: null,
                 capacity: 'dynamic', // السعة = الحصص المسندة
-                ruleSummaryAr: '👔 مشرف: ليس على جدول التدريب الرسمي. السعة تساوي الحصص المسندة ونسبة الإشغال 100% نظرياً وبدون أي حصص خالية.',
-                ruleSummaryEn: '👔 Supervisor: No fixed schedule. Capacity equals assigned slots, occupancy 100% with zero empty slots.'
+                ruleSummaryAr: '👔 مشرف: ليس لديه جدول تدريب ثابت (جدوله خالي من الحصص). لا تحسب له إلا الحصص المسجلة بالنظام فقط، والسعة تساوي الحصص المسجلة وبدون أي حصص خالية (empty = 0).',
+                ruleSummaryEn: '👔 Supervisor: No fixed schedule. Schedule consists only of recorded sessions with zero empty slots.'
             };
         }
 
@@ -564,9 +564,10 @@ const SDIMasterRoster = {
 
     /**
      * إزالة وتطهير كافة الحصص الفارغة للمشرفين (Supervisors)
-     * - المشرف ليس لديه جدول تدريب نظامي (لا حصص فارغة تؤثر على معدل الإشغال أو الداشبورد).
-     * - الإبقاء حصراً على الحصص المشغولة المسندة إليه.
-     * - تصفير الحصص الفارغة تماماً (empty = 0) ومعدل الإشغال 100%.
+     * - المشرف ليس لديه جدول تدريب نظامي ثابت (جدوله خالي من خانات الحصص الفارغة).
+     * - لا تحسب له إلا الحصص المسجلة بالنظام فقط.
+     * - السعة تساوي عدد الحصص المسندة فعلياً (1 حصة -> سعة 1، 2 حصة -> سعة 2، 0 حصة -> سعة 0).
+     * - الحصص الخالية صفر دائماً (empty = 0).
      */
     pruneSupervisorSchedule(instructor) {
         if (!instructor) return instructor;
@@ -581,23 +582,25 @@ const SDIMasterRoster = {
         // 1. تصفية الجدول الكامل لحذف كافة الحصص الخالية غير المشغولة
         if (Array.isArray(instructor.fullSchedule)) {
             // إبقاء الحصص التي تحتوي على حصة مشغولة على الأقل
-            instructor.fullSchedule = instructor.fullSchedule.filter(s => s.sat === 'occupied' || s.sun === 'occupied');
+            instructor.fullSchedule = instructor.fullSchedule.filter(s => s && (s.sat === 'occupied' || s.sun === 'occupied'));
             instructor.fullSchedule.forEach(s => {
                 if (s.sat !== 'occupied') { s.sat = 'none'; s.origSat = 'none'; }
                 if (s.sun !== 'occupied') { s.sun = 'none'; s.origSun = 'none'; }
             });
+        } else {
+            instructor.fullSchedule = [];
         }
 
         // 2. حساب الحصص المشغولة والسعة
         let occ = 0;
-        (instructor.fullSchedule || []).forEach(s => {
+        instructor.fullSchedule.forEach(s => {
             if (s.sat === 'occupied') occ++;
             if (s.sun === 'occupied') occ++;
         });
 
         instructor.occupied = occ;
         instructor.capacity = occ;
-        instructor.empty = 0; // ممنوع أي حصص فارغة للمشرف
+        instructor.empty = 0; // ممنوع أي حصص فارغة للمشرف (جدوله خالي من الحصص وليس له خانات فارغة)
         instructor.rate = occ > 0 ? "100.0" : "0.0";
         instructor.slotsRows = []; // لا تظهر له أي حصص فارغة في تقرير الحصص الفارغة
 

@@ -1334,19 +1334,42 @@ class SDIReportApp {
 
             // استخراج الحصص التابعة للفترة المسجلة للمدرب فقط (10 حصص للمركبة، 12 للشاحنة) لمنع ظهور الـ 20 حصة
             const visibleSlots = this.getInstructorShiftSlots(inst);
+            const isSup = this.isSupervisor(inst);
 
             // حساب المؤشرات للحصص المعروضة حالياً
             let curOcc = 0, curEmp = 0;
-            visibleSlots.forEach(s => {
-                if (s.sat === 'occupied') curOcc++; else curEmp++;
-                if (s.sun === 'occupied') curOcc++; else curEmp++;
-            });
-            const curCap = curOcc + curEmp;
+            if (isSup) {
+                visibleSlots.forEach(s => {
+                    if (s.sat === 'occupied') curOcc++;
+                    if (s.sun === 'occupied') curOcc++;
+                });
+                curEmp = 0; // ممنوع احتساب أي حصص خالية للمشرف (جدوله خالي من الحصص)
+            } else {
+                visibleSlots.forEach(s => {
+                    if (s.sat === 'occupied') curOcc++; else curEmp++;
+                    if (s.sun === 'occupied') curOcc++; else curEmp++;
+                });
+            }
+            const curCap = isSup ? curOcc : (curOcc + curEmp);
             const curRate = curCap > 0 ? ((curOcc / curCap) * 100).toFixed(1) : "0.0";
 
             // تقسيم الحصص إلى عمودين متساويين في حال تجاوزت 5 حصص لتلائم الشاشة بالكامل بدون سكرول
             let tableLayoutHtml = '';
-            if (visibleSlots.length > 5) {
+            if (isSup && visibleSlots.length === 0) {
+                tableLayoutHtml = `
+                    <div style="background: #fffbeb; border: 1.5px dashed #fde68a; border-radius: 10px; padding: 40px 20px; text-align: center; margin-top: 10px;">
+                        <div style="font-size: 38px; margin-bottom: 10px;">👔</div>
+                        <h4 style="font-size: 15px; font-weight: 800; color: #92400e; margin-bottom: 6px;">
+                            ${isAr ? 'المشرف ليس لديه جدول تدريبي ثابت (0 حصص مسجلة | 0 حصص خالية)' : 'Supervisor has no fixed schedule template (0 recorded sessions | 0 empty slots)'}
+                        </h4>
+                        <p style="font-size: 13px; color: #b45309; max-width: 600px; margin: 0 auto 16px auto; line-height: 1.6;">
+                            ${isAr 
+                                ? 'وفق اللائحة المعتمدة، جدول المشرف خالي من خانات الحصص الفارغة، ولا تُحسب له إلا الحصص المسجلة فعلياً بالنظام. عند تسجيل أو إسناد أي حصة للمشرف ستظهر له فقط وتُحسب سعته بعدد حصصه المسجلة دون أي حصص خالية.' 
+                                : 'According to regulations, the supervisor has no empty slots template. Sessions appear only when actually booked in the system, with zero empty slots.'}
+                        </p>
+                    </div>
+                `;
+            } else if (visibleSlots.length > 5) {
                 const mid = Math.ceil(visibleSlots.length / 2);
                 const col1 = visibleSlots.slice(0, mid);
                 const col2 = visibleSlots.slice(mid);
@@ -1388,19 +1411,26 @@ class SDIReportApp {
                                 <button class="btn btn-outline btn-sm" onclick="app.openInstructorModal('edit', '${inst.id}')" title="تعديل بيانات وتكويد هذا المدرب">
                                     ${this.t('btnEditCoding')}
                                 </button>
+                                ${!isSup ? `
                                 <button class="btn btn-outline btn-sm" onclick="app.setShiftAllSlots('${inst.id}', 'empty')" title="تفريغ كافة حصص هذا النطاق">
                                     ${this.t('btnClearRange')}
                                 </button>
                                 <button class="btn btn-outline btn-sm" onclick="app.setShiftAllSlots('${inst.id}', 'occupied')" title="حجز كافة حصص هذا النطاق">
                                     ${this.t('btnBookRange')}
                                 </button>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
 
                     <!-- إحصائيات سريعة للحصص المسجلة فقط -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #f8fafc; padding: 8px 14px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 12.5px; flex-wrap: wrap; gap: 8px;">
-                        <span>${this.t('instShiftRegistered')} <strong>${inst.shiftName}</strong> | ${this.t('instSlotsRange')} <strong>${this.t('slotTitle')} ${visibleSlots[0]?.slot || 1} ${isAr ? 'إلى' : 'to'} ${visibleSlots[visibleSlots.length-1]?.slot || 10}</strong> (${visibleSlots.length} ${this.t('instSlotsCount')})</span>
+                        <span>
+                            ${isSup 
+                                ? (isAr ? `👔 <strong>مشرف / سوبرفايزر</strong> (بدون جدول ثابت | الحصص المسجلة فقط: <strong>${visibleSlots.length} حصة</strong>)` : `👔 <strong>Supervisor</strong> (No fixed schedule | Recorded: <strong>${visibleSlots.length}</strong>)`)
+                                : `${this.t('instShiftRegistered')} <strong>${inst.shiftName}</strong> | ${this.t('instSlotsRange')} <strong>${this.t('slotTitle')} ${visibleSlots[0]?.slot || 1} ${isAr ? 'إلى' : 'to'} ${visibleSlots[visibleSlots.length-1]?.slot || 10}</strong> (${visibleSlots.length} ${this.t('instSlotsCount')})`
+                            }
+                        </span>
                         <div style="display: flex; gap: 14px;">
                             <span>${isAr ? 'مشغولة:' : 'Occupied:'} <strong style="color: #f37421;">${curOcc}</strong></span>
                             <span>${isAr ? 'فارغة:' : 'Empty:'} <strong style="color: #16a34a;">${curEmp}</strong></span>
@@ -1841,8 +1871,8 @@ class SDIReportApp {
             shiftEl.value = 'SUP';
             badgeEl.innerText = `SUP-${cat}`;
             descEl.innerHTML = isAr 
-                ? '👔 <strong>مشرف / سوبرفايزر:</strong> ليس لديه جدول تدريب رسمي ثابت (تكليف عند الحاجة فقط). معدل إشغال 100% لكافة الحصص المسندة وبدون أي حصص فارغة.'
-                : '👔 <strong>Supervisor:</strong> No fixed 20-slot schedule (assigned on-demand only). 100% occupancy rate with 0 empty slots.';
+                ? '👔 <strong>مشرف / سوبرفايزر:</strong> ليس لديه جدول تدريبي ثابت (جدوله خالي من خانات الحصص). لا تُحسب له إلا الحصص المسجلة بالنظام فقط، وتكون سعته مساوية لعدد الحصص المسجلة (1 حصة -> 1، 2 حصة -> 2، 0 حصة -> 0) وبدون أي حصص خالية.'
+                : '👔 <strong>Supervisor:</strong> No fixed schedule template. Schedule consists only of recorded sessions in system (Capacity = recorded sessions, 0 empty slots).';
             return;
         }
 
@@ -2011,25 +2041,46 @@ class SDIReportApp {
             inst.minSlot = minSlot;
             inst.maxSlot = maxSlot;
             inst.isSupervisor = isSupervisor;
-            inst.capacity = capacity;
-
-            const maxNeededSlot = category === 'HT' ? 24 : 20;
-            if (!inst.fullSchedule || inst.fullSchedule.length < maxNeededSlot) {
-                inst.fullSchedule = [];
-                for (let s = 1; s <= maxNeededSlot; s++) {
-                    inst.fullSchedule.push({ slot: s, sat: 'empty', sun: 'empty' });
-                }
-            }
 
             if (isSupervisor) {
+                // قاعدة المشرف: ليس لديه جدول تدريب ثابت (جدوله خالي من خانات الحصص الفارغة)
+                // لا تحسب له إلا الحصص المسجلة بالنظام فقط، وتطهير كافة الحصص الفارغة
+                if (Array.isArray(inst.fullSchedule)) {
+                    inst.fullSchedule = inst.fullSchedule.filter(s => s && (s.sat === 'occupied' || s.sun === 'occupied'));
+                    inst.fullSchedule.forEach(s => {
+                        if (s.sat !== 'occupied') { s.sat = 'none'; s.origSat = 'none'; }
+                        if (s.sun !== 'occupied') { s.sun = 'none'; s.origSun = 'none'; }
+                    });
+                } else {
+                    inst.fullSchedule = [];
+                }
+
+                let occ = 0;
+                inst.fullSchedule.forEach(s => {
+                    if (s.sat === 'occupied') occ++;
+                    if (s.sun === 'occupied') occ++;
+                });
+
+                inst.occupied = occ;
+                inst.capacity = occ;
+                inst.empty = 0;
+                inst.rate = occ > 0 ? "100.0" : "0.0";
+                inst.slotsRows = [];
                 if (typeof SDIMasterRoster !== 'undefined') {
                     SDIMasterRoster.pruneSupervisorSchedule(inst);
-                } else {
-                    inst.slotsRows = [];
-                    inst.empty = 0;
                 }
-            } else if (typeof SDIPdfParser !== 'undefined') {
-                inst.slotsRows = SDIPdfParser.generateEmptySlotsRows(inst.fullSchedule, inst.category, inst.shift, inst.gender);
+            } else {
+                inst.capacity = capacity;
+                const maxNeededSlot = category === 'HT' ? 24 : 20;
+                if (!inst.fullSchedule || inst.fullSchedule.length < maxNeededSlot) {
+                    inst.fullSchedule = [];
+                    for (let s = 1; s <= maxNeededSlot; s++) {
+                        inst.fullSchedule.push({ slot: s, sat: 'empty', sun: 'empty' });
+                    }
+                }
+                if (typeof SDIPdfParser !== 'undefined') {
+                    inst.slotsRows = SDIPdfParser.generateEmptySlotsRows(inst.fullSchedule, inst.category, inst.shift, inst.gender);
+                }
             }
 
             this.selectedInstId = id;
@@ -2043,8 +2094,10 @@ class SDIReportApp {
 
             const maxSlotsCount = category === 'HT' ? 24 : 20;
             const fullSchedule = [];
-            for (let s = 1; s <= maxSlotsCount; s++) {
-                fullSchedule.push({ slot: s, sat: 'empty', sun: 'empty' });
+            if (!isSupervisor) {
+                for (let s = 1; s <= maxSlotsCount; s++) {
+                    fullSchedule.push({ slot: s, sat: 'empty', sun: 'empty' });
+                }
             }
 
             let slotsRows = [];
@@ -2071,7 +2124,7 @@ class SDIReportApp {
                 minSlot,
                 maxSlot,
                 note: '',
-                slotsRows,
+                slotsRows: isSupervisor ? [] : slotsRows,
                 fullSchedule
             };
 
@@ -2861,7 +2914,7 @@ class SDIReportApp {
                 // حساب السعة والنطاق المعتمد
                 let slotsRangeStr = '';
                 if (isSup) {
-                    slotsRangeStr = `<span style="color:#b45309; font-weight:700;">${isAr ? 'حسب التكليف (إشغال 100%)' : 'Ad-hoc (100% Rate)'}</span>`;
+                    slotsRangeStr = `<span style="color:#b45309; font-weight:700;">${isAr ? 'الحصص المسجلة فقط (بدون جدول ثابت | 0 خالية)' : 'Recorded only (No template | 0 empty)'}</span>`;
                 } else if (inst.category === 'MC') {
                     slotsRangeStr = `<span style="color:#166534; font-weight:700;">6 إلى 17 (24 حصة)</span>`;
                 } else if (inst.category === 'HT') {
@@ -3970,9 +4023,47 @@ class SDIReportApp {
             }
         }
 
+        // راية تحذيرات وتجاوزات الحد الأقصى للمتدرب (حصتان يومياً)
+        let warningsBannerHtml = '';
+        if (comparison.warnings && comparison.warnings.length > 0) {
+            const warnListItems = comparison.warnings.map(w => `
+                <li style="margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5;">
+                    <span style="color: #dc2626; font-size: 16px; flex-shrink: 0; line-height: 1;">🚫</span>
+                    <span style="color: #7f1d1d;"><strong>${isAr ? w.messageAr : w.messageEn}</strong></span>
+                </li>
+            `).join('');
+
+            warningsBannerHtml = `
+                <div style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(239,68,68,0.12);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid #fecaca; padding-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 26px;">⚠️</span>
+                            <div>
+                                <strong style="color: #991b1b; font-size: 15px; display: block;">
+                                    ${isAr ? `تنبيه ومخالفة لوائح المعهد: تجاوز الحد الأقصى للمتدرب (حصتان يومياً) - [${comparison.warnings.length} مخالفة]` : `SDI Policy Violation: Student Daily Limit Exceeded (2 Classes Max) - [${comparison.warnings.length} warnings]`}
+                                </strong>
+                                <span style="font-size: 12px; color: #b91c1c;">
+                                    ${isAr 
+                                        ? 'القاعدة الصارمة: لا يُسمح للمتدرب الواحد بأخذ أكثر من حصتين (2 حصة فقط يومياً) سواء متفرقة أو حصص مزدوجة (D). تم حظر واستبعاد الحصص الزائدة تلقائياً لتحقيق دقة النظام والالتزام بلوائح المعهد.' 
+                                        : 'Strict SDI Rule: A student cannot take more than 2 classes per day (individual or double D). Excess slots were blocked automatically to ensure compliance.'}
+                                </span>
+                            </div>
+                        </div>
+                        <span style="background: #dc2626; color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 800;">
+                            ${comparison.warnings.length} ${isAr ? 'حصة مستبعدة' : 'blocked sessions'}
+                        </span>
+                    </div>
+                    <ul style="margin: 0; padding-${isAr ? 'right' : 'left'}: 10px; list-style-type: none;">
+                        ${warnListItems}
+                    </ul>
+                </div>
+            `;
+        }
+
         // كروت المؤشرات العامة للمقارنة
         const kpisHtml = `
             ${dualFileBannerHtml}
+            ${warningsBannerHtml}
             <div class="comparison-kpi-grid">
                 <div class="comparison-kpi-card">
                     <div class="comparison-kpi-icon" style="background: #eff6ff; color: #1d4ed8;">📋</div>
@@ -4024,6 +4115,19 @@ class SDIReportApp {
                         <div class="comparison-kpi-label">${this.t('kpiRoadSessions')}</div>
                     </div>
                 </div>
+
+                ${comparison.warnings && comparison.warnings.length > 0 ? `
+                <div class="comparison-kpi-card" style="border-color: #ef4444; background: #fff5f5;">
+                    <div class="comparison-kpi-icon" style="background: #fee2e2; color: #dc2626;">🚫</div>
+                    <div>
+                        <div class="comparison-kpi-num" style="color: #dc2626;">${comparison.warnings.length}</div>
+                        <div class="comparison-kpi-label">
+                            ${isAr ? 'تجاوز حد الحصتين' : 'Limit Violations'}
+                            <span style="font-size: 10px; color: #991b1b; display: block;">${isAr ? '(محظورة ومستبعدة)' : '(Blocked)'}</span>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
             </div>
         `;
 
@@ -4262,8 +4366,22 @@ class SDIReportApp {
                 : ((this.comparisonDayKey === 'auto') ? 'sun' : this.comparisonDayKey);
             const instDetailsKey = (instDayKey === 'sat') ? 'satDetails' : 'sunDetails';
 
+            const isSup = this.isSupervisor(inst);
+
             planInst.sessions.forEach(session => {
-                const slotObj = inst.fullSchedule.find(s => s.slot === session.slot);
+                let slotObj = inst.fullSchedule.find(s => s.slot === session.slot);
+                if (!slotObj && isSup) {
+                    slotObj = {
+                        slot: session.slot,
+                        sat: 'none',
+                        sun: 'none',
+                        origSat: 'none',
+                        origSun: 'none'
+                    };
+                    inst.fullSchedule.push(slotObj);
+                    inst.fullSchedule.sort((a, b) => a.slot - b.slot);
+                }
+
                 if (slotObj) {
                     // الحفاظ على الحالة الأساسية لجدول الإتاحة الرسمي قبل أي تعديلات
                     if (slotObj.origSat === undefined) slotObj.origSat = slotObj.sat;
@@ -4275,7 +4393,7 @@ class SDIReportApp {
                         : (slotObj.origSun || slotObj.sun);
 
                     // الحصة تعتبر Fixed إذا كانت فارغة في الإتاحة الرسمية، أو كانت مثبتة مسبقاً، أو معلمة كـ Fixed
-                    const wasEmptyInBaseline = (baselineStatus === 'empty') || !!prevDetails.isFixed || !!session.isFixed;
+                    const wasEmptyInBaseline = (baselineStatus === 'empty' || baselineStatus === 'none') || !!prevDetails.isFixed || !!session.isFixed;
 
                     slotObj[instDayKey] = 'occupied';
                     slotObj[instDetailsKey] = {
@@ -4298,7 +4416,23 @@ class SDIReportApp {
                 }
             });
 
-            if (typeof SDIPdfParser !== 'undefined') {
+            if (isSup) {
+                if (typeof SDIMasterRoster !== 'undefined') {
+                    SDIMasterRoster.pruneSupervisorSchedule(inst);
+                } else {
+                    inst.fullSchedule = inst.fullSchedule.filter(s => s.sat === 'occupied' || s.sun === 'occupied');
+                    let occ = 0;
+                    inst.fullSchedule.forEach(s => {
+                        if (s.sat === 'occupied') occ++;
+                        if (s.sun === 'occupied') occ++;
+                    });
+                    inst.occupied = occ;
+                    inst.capacity = occ;
+                    inst.empty = 0;
+                    inst.rate = occ > 0 ? "100.0" : "0.0";
+                    inst.slotsRows = [];
+                }
+            } else if (typeof SDIPdfParser !== 'undefined') {
                 inst.slotsRows = SDIPdfParser.generateEmptySlotsRows(inst.fullSchedule, inst.minSlot, inst.maxSlot);
             }
         });
@@ -4331,7 +4465,20 @@ class SDIReportApp {
             : ((this.comparisonDayKey === 'auto') ? 'sun' : this.comparisonDayKey);
         const instDetailsKey = (instDayKey === 'sat') ? 'satDetails' : 'sunDetails';
 
-        const slotObj = inst.fullSchedule.find(s => s.slot === slotNum);
+        const isSup = this.isSupervisor(inst);
+        let slotObj = inst.fullSchedule.find(s => s.slot === slotNum);
+        if (!slotObj && isSup) {
+            slotObj = {
+                slot: slotNum,
+                sat: 'none',
+                sun: 'none',
+                origSat: 'none',
+                origSun: 'none'
+            };
+            inst.fullSchedule.push(slotObj);
+            inst.fullSchedule.sort((a, b) => a.slot - b.slot);
+        }
+
         if (slotObj) {
             if (slotObj.origSat === undefined) slotObj.origSat = slotObj.sat;
             if (slotObj.origSun === undefined) slotObj.origSun = slotObj.sun;
@@ -4340,7 +4487,7 @@ class SDIReportApp {
             const baselineStatus = (instDayKey === 'sat') 
                 ? (slotObj.origSat || slotObj.sat) 
                 : (slotObj.origSun || slotObj.sun);
-            const wasEmptyInBaseline = (baselineStatus === 'empty') || !!prevDetails.isFixed || !!session.isFixed;
+            const wasEmptyInBaseline = (baselineStatus === 'empty' || baselineStatus === 'none') || !!prevDetails.isFixed || !!session.isFixed;
 
             slotObj[instDayKey] = 'occupied';
             slotObj[instDetailsKey] = {
@@ -4361,7 +4508,23 @@ class SDIReportApp {
             };
         }
 
-        if (typeof SDIPdfParser !== 'undefined') {
+        if (isSup) {
+            if (typeof SDIMasterRoster !== 'undefined') {
+                SDIMasterRoster.pruneSupervisorSchedule(inst);
+            } else {
+                inst.fullSchedule = inst.fullSchedule.filter(s => s.sat === 'occupied' || s.sun === 'occupied');
+                let occ = 0;
+                inst.fullSchedule.forEach(s => {
+                    if (s.sat === 'occupied') occ++;
+                    if (s.sun === 'occupied') occ++;
+                });
+                inst.occupied = occ;
+                inst.capacity = occ;
+                inst.empty = 0;
+                inst.rate = occ > 0 ? "100.0" : "0.0";
+                inst.slotsRows = [];
+            }
+        } else if (typeof SDIPdfParser !== 'undefined') {
             inst.slotsRows = SDIPdfParser.generateEmptySlotsRows(inst.fullSchedule, inst.minSlot, inst.maxSlot);
         }
 
@@ -4480,6 +4643,15 @@ class SDIReportApp {
                 ? `🎉 تم تحليل خطة اليوم (${displayFileName}) بنجاح! تم رصد ${parsedDayPlan.stats.totalSessions} حصة (${parsedDayPlan.stats.yardSessions} ساحة / ${parsedDayPlan.stats.roadSessions} شارع)، و ${extraCount} حصة زائدة مضافة يدوياً.`
                 : `🎉 Day Plan (${displayFileName}) parsed! Found ${parsedDayPlan.stats.totalSessions} sessions (${parsedDayPlan.stats.yardSessions} Yard / ${parsedDayPlan.stats.roadSessions} Road), and ${extraCount} manual extra sessions.`;
             this.showToast(msg);
+
+            if (parsedDayPlan.hasWarnings && parsedDayPlan.warnings?.length > 0) {
+                setTimeout(() => {
+                    const warnMsg = (this.lang === 'ar')
+                        ? `⚠️ تنبيه رسمي: تم رصد ${parsedDayPlan.warnings.length} مخالفة لتجاوز حد الحصتين للمتدرب، وتم حظر واستبعاد الحصص الزائدة تلقائياً وفق لوائح المعهد.`
+                        : `⚠️ Policy Warning: Detected ${parsedDayPlan.warnings.length} student limit violations. Excess sessions blocked automatically.`;
+                    this.showToast(warnMsg);
+                }, 2200);
+            }
         } catch (err) {
             if (loadingModal) loadingModal.style.display = 'none';
             console.error(err);

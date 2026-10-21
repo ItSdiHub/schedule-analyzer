@@ -257,6 +257,8 @@ const SDIComparisonEngine = {
             planFileName: dayPlanData.fileName,
             instructors: instructorComparisons,
             missingFromPlanInstructors: missingFromPlan,
+            warnings: dayPlanData?.warnings || [],
+            hasWarnings: (dayPlanData?.warnings && dayPlanData.warnings.length > 0) || false,
             stats: {
                 totalPlanSessions: totalPlanSessionsCount,
                 matchedSessions: totalMatched,
@@ -265,6 +267,7 @@ const SDIComparisonEngine = {
                 yardSessions: totalYard,
                 roadSessions: totalRoad,
                 doubleSessions: totalDouble,
+                warningsCount: (dayPlanData?.warnings || []).length,
                 yardRate: totalPlanSessionsCount > 0 ? ((totalYard / totalPlanSessionsCount) * 100).toFixed(1) : "0.0",
                 roadRate: totalPlanSessionsCount > 0 ? ((totalRoad / totalPlanSessionsCount) * 100).toFixed(1) : "0.0",
                 conflictRiskRate: totalPlanSessionsCount > 0 ? ((totalManualExtra / totalPlanSessionsCount) * 100).toFixed(1) : "0.0"

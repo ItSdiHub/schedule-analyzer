@@ -127,7 +127,7 @@ const SDI_TRANSLATIONS = {
         lblInstShift: "فترة العمل المعتمدة:",
         lblShiftCodePreview: "⚡ كود الوردية:",
         roleInstructor: "🚗 مدرب رسمي",
-        roleSupervisor: "👔 مشرف / سوبرفايزر",
+        roleSupervisor: "👔 مشرف / سوبرفايزر (بدون جدول ثابت)",
         genderMale: "👨 ذكر",
         genderFemale: "👩 سيدة / أنثى",
         btnClearFields: "🔄 مسح الحقول",
@@ -135,12 +135,12 @@ const SDI_TRANSLATIONS = {
 
         // التبويب الرابع: لوحة تكويد المدربين
         tab4HeaderTitle: "لوحة تسجيل وتكويد الملاك التدريبي المعتمد - معهد الشارقة للسياقة",
-        tab4HeaderSub: "نموذج تسجيل فترات العمل والكادر التدريبي (مدربين ذكور 20 حصة، مدربات سيدات 18 حصة، مشرفين تكليف طارئ)",
+        tab4HeaderSub: "نموذج تسجيل فترات العمل والكادر التدريبي (مدربين ذكور 20 حصة، مدربات سيدات 18 حصة، مشرفين بدون جدول ثابت)",
         tab4TotalKpi: "إجمالي الكادر التدريبي",
         tab4MorningKpi: "الفترة الصباحية",
         tab4EveningKpi: "الفترة المسائية",
         tab4FemaleKpi: "المدربات السيدات (18 حصة)",
-        tab4SupervisorKpi: "المشرفون (تكليف طارئ)",
+        tab4SupervisorKpi: "المشرفون (بدون جدول ثابت)",
         tab4TableStaffId: "الرقم الوظيفي",
         tab4TableName: "اسم المدرب / المشرف",
         tab4TableCat: "فئة التدريب",
@@ -152,6 +152,7 @@ const SDI_TRANSLATIONS = {
         warnDoubleLimit: "⚠️ تنبيه رسمي: ممنوع إعطاء أكثر من حصتين (2 حصة) للمتدرب الواحد يومياً وفق لوائح المعهد المعتمدة.",
         warnDoublePart2Cascade: "⚠️ تنبيه: هذه الحصة تابعة لحصة مزدوجة سابقة ولا يمكن تحويلها إلى دبل إضافي لأن الحد الأقصى للمتدرب هو حصتان فقط.",
         noticeDoubleRule: "⚡ الحصص المزدوجة (Double): حصتان فقط لنفس المتدرب (الحصة المسجلة والتي تليها مباشرة). ممنوع إعطاء أكثر من حصتين لنفس الشخص يومياً.",
+        warnStudentLimitExceeded: "⚠️ خطأ وتنبيه نظام: تم رصد محاولة إعطاء المتدرب أكثر من حصتين (2 حصة). وفق لوائح المعهد، تم قصر الحصص على حصتين فقط منعاً للمخالفة.",
         btnSwitchMorning: "🌅 تحويل لصباحي",
         btnSwitchEvening: "🌇 تحويل لمسائي",
         btnSchedule: "🎮 جدول الحصص",
@@ -201,7 +202,7 @@ const SDI_TRANSLATIONS = {
         optionShiftMorning: "🌅 الفترة الصباحية (الأولى) - الحصص 1 إلى 10 (أو 1 إلى 12 للشاحنة)",
         optionShiftEvening: "🌇 الفترة المسائية (الثانية) - الحصص 11 إلى 20 (أو 13 إلى 24 للشاحنة)",
         optionShiftFix: "⏱️ فترة ثابتة (خاصة بالدراجة النارية 6 إلى 17)",
-        optionShiftSup: "👔 مشرف / سوبرفايزر (Supervisor) - حصص استثنائية (معدل إشغال 100%)",
+        optionShiftSup: "👔 مشرف / سوبرفايزر (Supervisor) - ليس لديه جدول ثابت (الحصص المسجلة فقط وبدون حصص فارغة)",
 
         // فحص وإضافة المدربين تلقائياً عند رفع الملف
         toastRosterVerifiedAll: "✅ تم فحص الملف: جميع المدربين ({count} مدرب) مسجلون بالنظام مسبقاً، وتم تحديث جداولهم بنجاح.",
@@ -366,7 +367,7 @@ const SDI_TRANSLATIONS = {
         lblInstShift: "Approved Work Shift:",
         lblShiftCodePreview: "⚡ Shift Code:",
         roleInstructor: "🚗 Official Instructor",
-        roleSupervisor: "👔 Supervisor (Ad-hoc)",
+        roleSupervisor: "👔 Supervisor (No Fixed Schedule)",
         genderMale: "👨 Male",
         genderFemale: "👩 Female",
         btnClearFields: "🔄 Clear Fields",
@@ -374,12 +375,12 @@ const SDI_TRANSLATIONS = {
 
         // Tab 4 Coding Manager
         tab4HeaderTitle: "Master Instructors & Shifts Roster Dashboard - SDI",
-        tab4HeaderSub: "Manage instructor shifts, roles (Male 20 slots, Female 18 slots, Supervisor on-demand), and approved capacities",
+        tab4HeaderSub: "Manage instructor shifts, roles (Male 20 slots, Female 18 slots, Supervisor with no fixed schedule), and approved capacities",
         tab4TotalKpi: "Total Training Staff",
         tab4MorningKpi: "Morning Shift",
         tab4EveningKpi: "Evening Shift",
         tab4FemaleKpi: "Female Staff (18 Slots)",
-        tab4SupervisorKpi: "Supervisors (Ad-hoc)",
+        tab4SupervisorKpi: "Supervisors (No Fixed Schedule)",
         tab4TableStaffId: "Staff ID",
         tab4TableName: "Name",
         tab4TableCat: "Category",
@@ -391,6 +392,7 @@ const SDI_TRANSLATIONS = {
         warnDoubleLimit: "⚠️ Training Policy: Maximum 2 sessions per student per day is allowed according to SDI regulations.",
         warnDoublePart2Cascade: "⚠️ Note: This session is Part 2 of an existing double class; cannot start another double class.",
         noticeDoubleRule: "⚡ Double Classes: Exactly 2 sessions for the same student (consecutive). Max 2 sessions per student per day.",
+        warnStudentLimitExceeded: "⚠️ Policy Violation: Attempted to assign more than 2 sessions to a student. Strictly limited to 2 sessions max per regulations.",
         btnSwitchMorning: "🌅 Switch to Morning",
         btnSwitchEvening: "🌇 Switch to Evening",
         btnSchedule: "🎮 Schedule",
@@ -440,7 +442,7 @@ const SDI_TRANSLATIONS = {
         optionShiftMorning: "🌅 Morning Shift (1st) - Slots 1 to 10 (or 1 to 12 for Truck)",
         optionShiftEvening: "🌇 Evening Shift (2nd) - Slots 11 to 20 (or 13 to 24 for Truck)",
         optionShiftFix: "⏱️ Fixed Shift (Motorcycle 6 to 17)",
-        optionShiftSup: "👔 Supervisor - Ad-hoc Sessions (100% Occupancy Rate)",
+        optionShiftSup: "👔 Supervisor - No Fixed Schedule (Recorded sessions only with zero empty slots)",
 
         // Roster Verification & Auto-Registration
         toastRosterVerifiedAll: "✅ File verified: All {count} instructors in the file are already registered; their schedules have been updated.",
