@@ -350,15 +350,16 @@
                         <label for="modal-inst-role"><span data-i18n="lblInstRole">الصفة / المسمى:</span> <span style="color:#ef4444;">*</span></label>
                         <select id="modal-inst-role" class="form-control" onchange="app.updateModalCodePreview()">
                             <option value="instructor" data-i18n="roleInstructor">🚗 مدرب تدريب رسمي</option>
-                            <option value="supervisor" data-i18n="roleSupervisor">👔 مشرف / سوبرفايزر (تكليف طارئ - إشغال 100%)</option>
+                            <option value="assistant" data-i18n="roleAssistant">🤝 مساعد مدرب (جدول مرن بدون حد حصص - الحصص المسجلة فقط)</option>
+                            <option value="supervisor" data-i18n="roleSupervisor">👔 مشرف / سوبرفايزر (جدول مرن بدون حد حصص)</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label for="modal-inst-gender"><span data-i18n="lblInstGender">الجنس:</span> <span style="color:#ef4444;">*</span></label>
                         <select id="modal-inst-gender" class="form-control" onchange="app.updateModalCodePreview()">
-                            <option value="male" data-i18n="genderMale">👨 ذكر (10 حصص يومياً / 20 إجمالي)</option>
-                            <option value="female" data-i18n="genderFemale">👩 سيدة / أنثى (9 حصص يومياً / 18 إجمالي)</option>
+                            <option value="male" data-i18n="genderMale">👨 ذكر</option>
+                            <option value="female" data-i18n="genderFemale">👩 سيدة / أنثى</option>
                         </select>
                     </div>
 
@@ -368,6 +369,8 @@
                             <option value="LMFM" data-i18n="optionLMFM">🚗 مركبة خفيفة - جير عادي (LMFM - 40 دقيقة)</option>
                             <option value="LMFA" data-i18n="optionLMFA">🚙 مركبة خفيفة - أوتوماتيك (LMFA - 40 دقيقة)</option>
                             <option value="HT" data-i18n="optionHT">🚛 شاحنة ثقيلة (HTFM - 30 دقيقة)</option>
+                            <option value="HB" data-i18n="optionHB">🚌 باص ثقيل (HBFM - 30 دقيقة)</option>
+                            <option value="LB" style="display:none;" data-i18n="optionLB">🚌 باص ثقيل (HBFM - 30 دقيقة)</option>
                             <option value="MC" data-i18n="optionMC">🏍️ دراجة نارية (MC - 30 دقيقة)</option>
                         </select>
                     </div>
@@ -375,10 +378,11 @@
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label for="modal-inst-shift"><span data-i18n="lblInstShift">فترة العمل المعتمدة:</span> <span style="color:#ef4444;">*</span></label>
                         <select id="modal-inst-shift" class="form-control" onchange="app.updateModalCodePreview()">
-                            <option value="S1" data-i18n="optionShiftMorning">🌅 الفترة الصباحية (الأولى) - الحصص 1 إلى 10 (أو 1 إلى 9 للسيدات)</option>
-                            <option value="S2" data-i18n="optionShiftEvening">🌇 الفترة المسائية (الثانية) - الحصص 11 إلى 20 (أو 11 إلى 19 للسيدات)</option>
-                            <option value="FIX" data-i18n="optionShiftFix">⏱️ فترة ثابتة (خاصة بالدراجة النارية 6 إلى 17)</option>
-                            <option value="SUP" data-i18n="optionShiftSup">👔 مشرف / سوبرفايزر (Supervisor) - ليس لديه جدول ثابت (الحصص المسجلة فقط وبدون حصص فارغة)</option>
+                            <option value="S1" data-i18n="optionShiftMorning">🌅 الفترة الصباحية (الأولى) - 10 حصص (1-10) للذكور، 9 حصص (1-9) للسيدات، 12 حصة (1-12) للشاحنة والباص الثقيل، 13 حصة (1-13) للدراجة</option>
+                            <option value="S2" data-i18n="optionShiftEvening">🌇 الفترة المسائية (الثانية) - 10 حصص (11-20) للذكور، 9 حصص (11-19) للسيدات، 12 حصة (13-24) للشاحنة والباص الثقيل، 13 حصة (14-26) للدراجة</option>
+                            <option value="FIX" data-i18n="optionShiftFix">🏍️ دراجة نارية - فترة واحدة بالفرع (13 حصة: 6 إلى 17 - 30 دقيقة)</option>
+                            <option value="AST" data-i18n="optionShiftAst">🤝 مساعد مدرب (Assistant) - جدول مرن بدون حد حصص (الحصص المسجلة فقط وبدون حصص فارغة)</option>
+                            <option value="SUP" data-i18n="optionShiftSup">👔 مشرف / سوبرفايزر (Supervisor) - جدول مرن بدون حد حصص (الحصص المسجلة فقط وبدون حصص فارغة)</option>
                         </select>
                     </div>
                 </div>

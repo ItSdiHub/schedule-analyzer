@@ -71,19 +71,33 @@ const SDIComparisonEngine = {
             }
 
             const isSupervisor = !!(availInst.isSupervisor || availInst.role === 'supervisor' || availInst.shift === 'SUP' || planInst.isSupervisor);
-            const isFemale = !!(availInst.gender === 'female' || planInst.gender === 'female');
-            const category = availInst.category || (planInst.sessions[0]?.course?.startsWith('LMFA') ? 'LMFA' : 'LMFM');
-            const shift = isSupervisor ? 'SUP' : (availInst.shift || (planInst.sessions.some(s => s.slot >= 11) ? 'S2' : 'S1'));
+            const isAssistant = !!(availInst.isAssistant || availInst.role === 'assistant' || availInst.shift === 'AST' || planInst.isAssistant);
+            const isFlexible = isSupervisor || isAssistant;
+            const category = availInst.category || (planInst.sessions[0]?.course?.startsWith('LMFA') ? 'LMFA' : (planInst.sessions[0]?.course?.startsWith('HT') ? 'HT' : (planInst.sessions[0]?.course?.startsWith('LB') ? 'LB' : (planInst.sessions[0]?.course?.startsWith('MC') ? 'MC' : 'LMFM'))));
+            const shift = isFlexible ? (isAssistant ? 'AST' : 'SUP') : (availInst.shift || (planInst.sessions.some(s => s.slot >= 11) ? 'S2' : 'S1'));
             
+            const isFem = (availInst.gender === 'female');
             let defaultMax = 10;
             let defaultMin = 1;
-            if (category === 'MC') { defaultMin = 6; defaultMax = 17; }
-            else if (category === 'HT') { defaultMin = (shift === 'S2' ? 13 : 1); defaultMax = (shift === 'S2' ? 24 : 12); }
-            else if (isFemale) { defaultMin = (shift === 'S2' ? 11 : 1); defaultMax = (shift === 'S2' ? 19 : 9); }
-            else { defaultMin = (shift === 'S2' ? 11 : 1); defaultMax = (shift === 'S2' ? 20 : 10); }
+            if (category === 'MC') {
+                if (shift === 'S1') { defaultMin = 1; defaultMax = 13; }
+                else if (shift === 'S2') { defaultMin = 14; defaultMax = 26; }
+                else { defaultMin = 6; defaultMax = 17; }
+            } else if (category === 'HT' || category === 'HB' || category === 'LB') {
+                defaultMin = (shift === 'S2' ? 13 : 1);
+                defaultMax = (shift === 'S2' ? 24 : 12);
+            } else {
+                if (isFem) {
+                    defaultMin = (shift === 'S2' ? 11 : 1);
+                    defaultMax = (shift === 'S2' ? 19 : 9);
+                } else {
+                    defaultMin = (shift === 'S2' ? 11 : 1);
+                    defaultMax = (shift === 'S2' ? 20 : 10);
+                }
+            }
 
-            const minSlot = isSupervisor ? 1 : (availInst.minSlot || defaultMin);
-            const maxSlot = isSupervisor ? (category === 'HT' ? 24 : 20) : (availInst.maxSlot || defaultMax);
+            const minSlot = isFlexible ? 1 : (availInst.minSlot || defaultMin);
+            const maxSlot = isFlexible ? ((category === 'HT' || category === 'HB' || category === 'LB' || category === 'MC') ? (category === 'MC' ? 26 : 24) : 20) : (availInst.maxSlot || defaultMax);
 
             const slotComparisons = [];
             let instMatched = 0;
@@ -91,9 +105,9 @@ const SDIComparisonEngine = {
             let instNotInPlan = 0;
 
             // تحديد قائمة الحصص للمقارنة:
-            // في حالة المشرف: لا يوجد جدول 20 حصة، بل تقارن الحصص المسندة إليه فقط بدون أي حصص خالية
+            // في حالة المشرف ومساعد المدرب: جدول مرن بدون حد حصص، بل تقارن الحصص المسندة إليه فقط بدون أي حصص خالية
             let slotsToCheck = [];
-            if (isSupervisor) {
+            if (isFlexible) {
                 const planSlotNums = planInst.sessions.map(s => s.slot);
                 const availSlotNums = (availInst.fullSchedule || [])
                     .filter(s => s[dayKey] === 'occupied')
@@ -165,7 +179,7 @@ const SDIComparisonEngine = {
                     instNotInPlan++;
                     totalNotInPlan++;
                 } else {
-                    if (!isSupervisor) totalFreeBoth++;
+                    if (!isFlexible) totalFreeBoth++;
                 }
 
                 if (planSession) {
@@ -215,6 +229,8 @@ const SDIComparisonEngine = {
                 maxSlot: maxSlot,
                 isRegisteredInAvailability: true,
                 isSupervisor: isSupervisor,
+                isAssistant: isAssistant,
+                isFlexible: isFlexible,
                 slots: slotComparisons,
                 stats: {
                     matched: instMatched,
@@ -224,7 +240,7 @@ const SDIComparisonEngine = {
                     yardCount: planInst.yardCount || 0,
                     roadCount: planInst.roadCount || 0,
                     doubleCount: planInst.doubleCount || 0,
-                    occupancyRate: isSupervisor ? (planInst.sessions.length > 0 ? "100.0" : "0.0") : null
+                    occupancyRate: isFlexible ? (planInst.sessions.length > 0 ? "100.0" : "0.0") : null
                 }
             });
         });
@@ -334,7 +350,7 @@ const SDIComparisonEngine = {
             const f = MC_TIME_SLOTS.find(t => t.id === slot);
             return f ? f.time : '';
         }
-        if (category === 'HT' && typeof HT_TIME_SLOTS !== 'undefined') {
+        if ((category === 'HT' || category === 'HB' || category === 'LB') && typeof HT_TIME_SLOTS !== 'undefined') {
             const f = HT_TIME_SLOTS.find(t => t.id === slot);
             return f ? f.time : '';
         }

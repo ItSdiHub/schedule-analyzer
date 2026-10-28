@@ -4,10 +4,15 @@
       "id": "102404",
       "name": "Rooh Ullah Noor Ul Amin Khan",
       "shortName": "Rooh Ullah",
+      "gender": "male",
+      "role": "instructor",
+      "isSupervisor": false,
+      "isAssistant": false,
+      "isFlexible": false,
       "category": "HT",
       "vehicleType": "شاحنة ثقيلة (HT)",
       "shift": "S2",
-      "shiftName": "الفترة الثانية (13 - 24)",
+      "shiftName": "الفترة الثانية (13 - 24) [12 حصة]",
       "shiftCode": "HTFM-S2",
       "capacity": 24,
       "occupied": 21,
@@ -51,6 +56,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Mohamad Ghassan Abdallah Sule",
+            "studentId": "26593496",
+            "course": "HTFM10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "13:45-14:15",
+            "isFixed": false
           }
         },
         {
@@ -74,6 +91,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Ibrahim Mohammad Shadulla Mo",
+            "studentId": "26135398",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "14:15-14:45",
+            "isFixed": false
           }
         },
         {
@@ -91,8 +120,8 @@
             "classType": "R",
             "isDoublePart1": false,
             "isDoublePart2": false,
-            "isFixed": false,
-            "note": "",
+            "isFixed": true,
+            "note": "Fixed",
             "hasDualStudents": false,
             "student2Name": "",
             "student2Id": "",
@@ -105,6 +134,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Ekampreet Singh Sukhwinder Sin",
+            "studentId": "26375537",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "15:20-15:50",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "AMANDEEP RAVI KUMAR",
             "studentId": "26604520",
@@ -128,6 +169,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Mohammad Samir Ahmad Choha",
+            "studentId": "26108229",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "16:15-16:45",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "JASPREET SINGH BALWIN",
             "studentId": "26715415",
@@ -160,8 +213,8 @@
             "classType": "R",
             "isDoublePart1": false,
             "isDoublePart2": false,
-            "isFixed": false,
-            "note": "",
+            "isFixed": true,
+            "note": "Fixed",
             "hasDualStudents": false,
             "student2Name": "",
             "student2Id": "",
@@ -189,6 +242,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Abdul Rahaman Hamid Ali Khan",
+            "studentId": "26285844",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "17:20-17:50",
+            "isFixed": false
           }
         },
         {
@@ -197,6 +262,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Rajbir Singh Sulakhan Singh",
+            "studentId": "26166459",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "17:50-18:20",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "GURWINDER SINGH KULWI",
             "studentId": "26874510",
@@ -220,6 +297,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Shahrukh Khan Nijamuddin",
+            "studentId": "26896553",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "18:45-19:15",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "SOHEL KHAN MAHABUB AL",
             "studentId": "26258928",
@@ -258,6 +347,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Ravi Teja Gaddala Gangaram Ga",
+            "studentId": "26187897",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "19:15-19:45",
+            "isFixed": false
           }
         },
         {
@@ -266,6 +367,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Yakoob Khan Rahman Khan",
+            "studentId": "26700235",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "19:50-20:20",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "GURJANT SINGH GURMEJ SI",
             "studentId": "26532247",
@@ -288,20 +401,205 @@
           "sat": "occupied",
           "sun": "empty",
           "origSat": "occupied",
-          "origSun": "empty"
+          "origSun": "empty",
+          "satDetails": {
+            "studentName": "Harmanjot Singh Jaskaran Singh",
+            "studentId": "26308452",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "20:20-20:50",
+            "isFixed": false
+          }
         }
       ],
-      "gender": "male",
-      "role": "instructor"
+      "students": [
+        {
+          "id": "26143727",
+          "name": "Anmolpreet Singh Manjit Singh",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 13,
+          "time": "13:45-14:15"
+        },
+        {
+          "id": "26593496",
+          "name": "Mohamad Ghassan Abdallah Sule",
+          "course": "HTFM10R",
+          "days": "SAT-MON-WED",
+          "slot": 13,
+          "time": "13:45-14:15"
+        },
+        {
+          "id": "26902970",
+          "name": "Fazal Mehboob Faiz Muhammad",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 14,
+          "time": "14:15-14:45"
+        },
+        {
+          "id": "26135398",
+          "name": "Ibrahim Mohammad Shadulla Mo",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 14,
+          "time": "14:15-14:45"
+        },
+        {
+          "id": "26716061",
+          "name": "Kulwinder Singh Sarwan Singh",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 15,
+          "time": "14:50-15:20"
+        },
+        {
+          "id": "26375537",
+          "name": "Ekampreet Singh Sukhwinder Sin",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 16,
+          "time": "15:20-15:50"
+        },
+        {
+          "id": "26604520",
+          "name": "Amandeep Ravi Kumar",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 16,
+          "time": "15:20-15:50"
+        },
+        {
+          "id": "26108229",
+          "name": "Mohammad Samir Ahmad Choha",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 17,
+          "time": "16:15-16:45"
+        },
+        {
+          "id": "26715415",
+          "name": "Jaspreet Singh Balwinder Singh",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 17,
+          "time": "16:15-16:45"
+        },
+        {
+          "id": "26687275",
+          "name": "Tanveer Ahmad Shah Rahman",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 18,
+          "time": "16:45-17:15"
+        },
+        {
+          "id": "26889312",
+          "name": "Sohil Mohammed Aslam",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 19,
+          "time": "17:20-17:50"
+        },
+        {
+          "id": "26285844",
+          "name": "Abdul Rahaman Hamid Ali Khan",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 19,
+          "time": "17:20-17:50"
+        },
+        {
+          "id": "26166459",
+          "name": "Rajbir Singh Sulakhan Singh",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 20,
+          "time": "17:50-18:20"
+        },
+        {
+          "id": "26874510",
+          "name": "Gurwinder Singh Kulwinder Sing",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 20,
+          "time": "17:50-18:20"
+        },
+        {
+          "id": "26896553",
+          "name": "Shahrukh Khan Nijamuddin",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 21,
+          "time": "18:45-19:15"
+        },
+        {
+          "id": "26258928",
+          "name": "Sohel Khan Mahabub Ali",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 21,
+          "time": "18:45-19:15"
+        },
+        {
+          "id": "26136233",
+          "name": "Lovepreet Singh Jugraj Singh",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 22,
+          "time": "19:15-19:45"
+        },
+        {
+          "id": "26187897",
+          "name": "Ravi Teja Gaddala Gangaram Ga",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 22,
+          "time": "19:15-19:45"
+        },
+        {
+          "id": "26700235",
+          "name": "Yakoob Khan Rahman Khan",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 23,
+          "time": "19:50-20:20"
+        },
+        {
+          "id": "26532247",
+          "name": "Gurjant Singh Gurmej Singh",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 23,
+          "time": "19:50-20:20"
+        },
+        {
+          "id": "26308452",
+          "name": "Harmanjot Singh Jaskaran Singh",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 24,
+          "time": "20:20-20:50"
+        }
+      ]
     },
     {
       "id": "102414",
       "name": "Muhammad Ayaz Fazal Jamil",
       "shortName": "Muhammad Ayaz",
+      "gender": "male",
+      "role": "instructor",
+      "isSupervisor": false,
+      "isAssistant": false,
+      "isFlexible": false,
       "category": "LMFM",
       "vehicleType": "خفيفة (LM)",
       "shift": "S1",
-      "shiftName": "الفترة الأولى (1 - 10)",
+      "shiftName": "الفترة الأولى (1 - 10) [10 حصص]",
       "shiftCode": "LMFM-S1",
       "capacity": 20,
       "occupied": 20,
@@ -334,6 +632,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Santhosh Pole Devaiah Pole",
+            "studentId": "26108717",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "06:20-07:00",
+            "isFixed": false
           }
         },
         {
@@ -357,6 +667,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Ahmed Mohamed Ibrahim Moham",
+            "studentId": "26441235",
+            "course": "LMFM05R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "07:00-07:40",
+            "isFixed": false
           }
         },
         {
@@ -380,6 +702,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Mecanson Moraise Soosai Raj",
+            "studentId": "26431506",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "07:40-08:20",
+            "isFixed": false
           }
         },
         {
@@ -388,6 +722,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Dasharath Bojjapally Balaiah Bojj",
+            "studentId": "26467147",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "08:20-09:00",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "SHAN BASHIR BASHIR AHMA",
             "studentId": "26627817",
@@ -411,6 +757,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Muhammed Shahabas Basheer",
+            "studentId": "26490603",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "09:15-09:55",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MADHU MOHAN MOHANAN NAI",
             "studentId": "26314979",
@@ -449,6 +807,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Delowar Hussain Mostan Ali",
+            "studentId": "26235625",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "09:55-10:35",
+            "isFixed": false
           }
         },
         {
@@ -472,6 +842,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Abdullah Sher Alam",
+            "studentId": "26932199",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "10:35-11:15",
+            "isFixed": false
           }
         },
         {
@@ -495,6 +877,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Mukesh Kumar Mandal Shikandar",
+            "studentId": "26909835",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "11:30-12:10",
+            "isFixed": false
           }
         },
         {
@@ -518,6 +912,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Gursewak Singh Kulwant Singh",
+            "studentId": "26782265",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "12:10-12:50",
+            "isFixed": false
           }
         },
         {
@@ -541,6 +947,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Abdus Samad Asid Ali",
+            "studentId": "26986350",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "12:50-13:30",
+            "isFixed": false
           }
         },
         {
@@ -614,17 +1032,182 @@
           "origSun": "empty"
         }
       ],
-      "gender": "male",
-      "role": "instructor"
+      "students": [
+        {
+          "id": "24240690",
+          "name": "Md Rafi Md Farid Uddin",
+          "course": "LMFM50R",
+          "days": "SUN-TUE-THU",
+          "slot": 1,
+          "time": "06:20-07:00"
+        },
+        {
+          "id": "26108717",
+          "name": "Santhosh Pole Devaiah Pole",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 1,
+          "time": "06:20-07:00"
+        },
+        {
+          "id": "26727880",
+          "name": "Hikmat Azam Sardar Azam",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 2,
+          "time": "07:00-07:40"
+        },
+        {
+          "id": "26441235",
+          "name": "Ahmed Mohamed Ibrahim Moham",
+          "course": "LMFM05R",
+          "days": "SAT-MON-WED",
+          "slot": 2,
+          "time": "07:00-07:40"
+        },
+        {
+          "id": "26308477",
+          "name": "Shareef Khan Ikbal Khan",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 3,
+          "time": "07:40-08:20"
+        },
+        {
+          "id": "26431506",
+          "name": "Mecanson Moraise Soosai Raj",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 3,
+          "time": "07:40-08:20"
+        },
+        {
+          "id": "26467147",
+          "name": "Dasharath Bojjapally Balaiah Bojj",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 4,
+          "time": "08:20-09:00"
+        },
+        {
+          "id": "26627817",
+          "name": "Shan Bashir Bashir Ahmad",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 4,
+          "time": "08:20-09:00"
+        },
+        {
+          "id": "26490603",
+          "name": "Muhammed Shahabas Basheer",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 5,
+          "time": "09:15-09:55"
+        },
+        {
+          "id": "26119415",
+          "name": "Chandan Kumar Dinesh Das",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 5,
+          "time": "09:15-09:55"
+        },
+        {
+          "id": "26254305",
+          "name": "Muhammed Shenoob Kadamthod",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 6,
+          "time": "09:55-10:35"
+        },
+        {
+          "id": "26235625",
+          "name": "Delowar Hussain Mostan Ali",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 6,
+          "time": "09:55-10:35"
+        },
+        {
+          "id": "26818950",
+          "name": "Muhamadi Dadi Nahoda",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 7,
+          "time": "10:35-11:15"
+        },
+        {
+          "id": "26932199",
+          "name": "Abdullah Sher Alam",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 7,
+          "time": "10:35-11:15"
+        },
+        {
+          "id": "26314979",
+          "name": "Madhu Mohan Mohanan Nair Vela",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 8,
+          "time": "11:30-12:10"
+        },
+        {
+          "id": "26909835",
+          "name": "Mukesh Kumar Mandal Shikandar",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 8,
+          "time": "11:30-12:10"
+        },
+        {
+          "id": "25564053",
+          "name": "Abdur Rahim Sajib Jalal Ahamme",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 9,
+          "time": "12:10-12:50"
+        },
+        {
+          "id": "26782265",
+          "name": "Gursewak Singh Kulwant Singh",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 9,
+          "time": "12:10-12:50"
+        },
+        {
+          "id": "26919617",
+          "name": "Kamal Ahmed Abdalla Osman",
+          "course": "LMFM15R",
+          "days": "SUN-TUE-THU",
+          "slot": 10,
+          "time": "12:50-13:30"
+        },
+        {
+          "id": "26986350",
+          "name": "Abdus Samad Asid Ali",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 10,
+          "time": "12:50-13:30"
+        }
+      ]
     },
     {
       "id": "102463",
       "name": "Muhammad Junaid Taj Parwar",
       "shortName": "Muhammad Junaid",
+      "gender": "male",
+      "role": "instructor",
+      "isSupervisor": false,
+      "isAssistant": false,
+      "isFlexible": false,
       "category": "LMFA",
-      "vehicleType": "خفيفة (LM)",
+      "vehicleType": "خفيفة أوتوماتيك (LMFA)",
       "shift": "S2",
-      "shiftName": "الفترة الثانية (11 - 20)",
+      "shiftName": "الفترة الثانية (11 - 20) [10 حصص]",
       "shiftCode": "LMFA-S2",
       "capacity": 20,
       "occupied": 20,
@@ -641,7 +1224,19 @@
           "sat": "empty",
           "sun": "occupied",
           "origSat": "empty",
-          "origSun": "occupied"
+          "origSun": "occupied",
+          "sunDetails": {
+            "studentName": "Saeed Mohammed Saeed Musabb",
+            "studentId": "26598430",
+            "course": "LMFA10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "06:20-07:00",
+            "isFixed": false
+          }
         },
         {
           "slot": 2,
@@ -712,6 +1307,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Muhammad Ilyas Ansari Shah Mu",
+            "studentId": "26618584",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "13:45-14:25",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "ABDUR RAHMAN NUR NABI",
             "studentId": "26870830",
@@ -735,6 +1342,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Mohammed Jonaid Ahmed Sheikh",
+            "studentId": "26595913",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "14:25-15:05",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "SAEED MOHAMMED SAEED MU",
             "studentId": "26598430",
@@ -758,6 +1377,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Bishal Bari Abdul Bari Abdul Rashe",
+            "studentId": "26280442",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "15:05-15:45",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "ABDEL RAHMAN AZZAM A AB",
             "studentId": "26198024",
@@ -796,6 +1427,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Vijai Arumugam Radhakrishnan R",
+            "studentId": "26728579",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "16:00-16:40",
+            "isFixed": false
           }
         },
         {
@@ -804,6 +1447,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Siva Kumar Goteti Rajendra Pras",
+            "studentId": "26910427",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "16:40-17:20",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "ABDEL RAHMAN AZZAM A AB",
             "studentId": "26198024",
@@ -842,6 +1497,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Md Alomgir Miah Md Abdul Moti",
+            "studentId": "26143483",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "17:20-18:00",
+            "isFixed": false
           }
         },
         {
@@ -850,6 +1517,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Haytham Ezzat Moustafa Matwa",
+            "studentId": "26387905",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "18:15-18:55",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "SHAZALAL LAHU SHARIF",
             "studentId": "26587328",
@@ -888,6 +1567,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Bodrul Islam Najrul Islam",
+            "studentId": "26371466",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "18:55-19:35",
+            "isFixed": false
           }
         },
         {
@@ -896,6 +1587,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Muhammad Talha Muhammad Tar",
+            "studentId": "25768629",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "19:35-20:15",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "AMAL NAGARAJAN SREELATH",
             "studentId": "26393764",
@@ -934,20 +1637,205 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Arif Saadi Abood Bin Mohammed",
+            "studentId": "26874108",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "20:15-20:55",
+            "isFixed": false
           }
         }
       ],
-      "gender": "male",
-      "role": "instructor"
+      "students": [
+        {
+          "id": "26598430",
+          "name": "Saeed Mohammed Saeed Musabb",
+          "course": "LMFA10R",
+          "days": "SUN-TUE-THU",
+          "slot": 1,
+          "time": "06:20-07:00"
+        },
+        {
+          "id": "26618584",
+          "name": "Muhammad Ilyas Ansari Shah Mu",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 11,
+          "time": "13:45-14:25"
+        },
+        {
+          "id": "26870830",
+          "name": "Abdur Rahman Nur Nabi",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 11,
+          "time": "13:45-14:25"
+        },
+        {
+          "id": "26595913",
+          "name": "Mohammed Jonaid Ahmed Sheikh",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 12,
+          "time": "14:25-15:05"
+        },
+        {
+          "id": "26832948",
+          "name": "Cristhoper Rosales Bantugan",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 12,
+          "time": "14:25-15:05"
+        },
+        {
+          "id": "26280442",
+          "name": "Bishal Bari Abdul Bari Abdul Rashe",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 13,
+          "time": "15:05-15:45"
+        },
+        {
+          "id": "26770428",
+          "name": "Nadeem Andramoochikal Yoosuf Y",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 13,
+          "time": "15:05-15:45"
+        },
+        {
+          "id": "26617703",
+          "name": "Md Kamrul Hasan Md Abdul Kade",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 14,
+          "time": "16:00-16:40"
+        },
+        {
+          "id": "26728579",
+          "name": "Vijai Arumugam Radhakrishnan R",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 14,
+          "time": "16:00-16:40"
+        },
+        {
+          "id": "26910427",
+          "name": "Siva Kumar Goteti Rajendra Pras",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 15,
+          "time": "16:40-17:20"
+        },
+        {
+          "id": "26198024",
+          "name": "Abdel Rahman Azzam A Abdulla",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 15,
+          "time": "16:40-17:20"
+        },
+        {
+          "id": "26102021",
+          "name": "Sanjeev Kumar Inder Dev Prasa",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 16,
+          "time": "17:20-18:00"
+        },
+        {
+          "id": "26143483",
+          "name": "Md Alomgir Miah Md Abdul Moti",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 16,
+          "time": "17:20-18:00"
+        },
+        {
+          "id": "26387905",
+          "name": "Haytham Ezzat Moustafa Matwa",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 17,
+          "time": "18:15-18:55"
+        },
+        {
+          "id": "26587328",
+          "name": "Shazalal Lahu Sharif",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 17,
+          "time": "18:15-18:55"
+        },
+        {
+          "id": "26906207",
+          "name": "Abdus Samad Haydar Ali",
+          "course": "LMFA10R",
+          "days": "SUN-TUE-THU",
+          "slot": 18,
+          "time": "18:55-19:35"
+        },
+        {
+          "id": "26371466",
+          "name": "Bodrul Islam Najrul Islam",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 18,
+          "time": "18:55-19:35"
+        },
+        {
+          "id": "25768629",
+          "name": "Muhammad Talha Muhammad Tar",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 19,
+          "time": "19:35-20:15"
+        },
+        {
+          "id": "26393764",
+          "name": "Amal Nagarajan Sreelatha Nagar",
+          "course": "LMFA10R",
+          "days": "SUN-TUE-THU",
+          "slot": 19,
+          "time": "19:35-20:15"
+        },
+        {
+          "id": "26467957",
+          "name": "Muhammad Uzair Iqbal Saleem Iq",
+          "course": "LMFA15R",
+          "days": "SUN-TUE-THU",
+          "slot": 20,
+          "time": "20:15-20:55"
+        },
+        {
+          "id": "26874108",
+          "name": "Arif Saadi Abood Bin Mohammed",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 20,
+          "time": "20:15-20:55"
+        }
+      ]
     },
     {
       "id": "105526",
       "name": "Musa Khan Bahadar Khan",
       "shortName": "Musa Khan",
+      "gender": "male",
+      "role": "instructor",
+      "isSupervisor": false,
+      "isAssistant": false,
+      "isFlexible": false,
       "category": "LMFM",
       "vehicleType": "خفيفة (LM)",
       "shift": "S2",
-      "shiftName": "الفترة الثانية (11 - 20)",
+      "shiftName": "الفترة الثانية (11 - 20) [10 حصص]",
       "shiftCode": "LMFM-S2",
       "capacity": 20,
       "occupied": 20,
@@ -1050,6 +1938,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Shemels Abegaz Asefaw",
+            "studentId": "26377059",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "13:45-14:25",
+            "isFixed": false
           }
         },
         {
@@ -1058,6 +1958,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Yawar Javed Javed Hassan",
+            "studentId": "26983308",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "14:25-15:05",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MANDIP KUMAR KISHORI S",
             "studentId": "26126551",
@@ -1081,6 +1993,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Prince Biju Biju Mathai",
+            "studentId": "26945009",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "15:05-15:45",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "DINITH AKALANKA MADDUMA",
             "studentId": "26370168",
@@ -1104,6 +2028,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Kedir Sisay Yesuf",
+            "studentId": "26876783",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "16:00-16:40",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MD ALISAN SAIDUWAN",
             "studentId": "26200089",
@@ -1127,6 +2063,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "empty",
+          "satDetails": {
+            "studentName": "Ahmed Mohamed Elsayed Elmor",
+            "studentId": "26515758",
+            "course": "LMFM05R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "16:40-17:20",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MD TOHIDUL ALAM MD ABU",
             "studentId": "26986302",
@@ -1150,6 +2098,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Mizanur Rohman Noyon",
+            "studentId": "25139399",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "17:20-18:00",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MD TOHIDUL ALAM MD ABU",
             "studentId": "26986302",
@@ -1188,6 +2148,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Imran Khan Bacha Zamin",
+            "studentId": "26441620",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "18:15-18:55",
+            "isFixed": false
           }
         },
         {
@@ -1196,6 +2168,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Yousif Abdalla Mousa Ibrahim Alb",
+            "studentId": "26245062",
+            "course": "LMFM10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "18:55-19:35",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MUHAMMAD ISMAIL ABUL",
             "studentId": "26321923",
@@ -1234,6 +2218,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Musab Yousif Mohamed Ahmed",
+            "studentId": "26821133",
+            "course": "LMFM15R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "19:35-20:15",
+            "isFixed": false
           }
         },
         {
@@ -1242,6 +2238,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Renjith Raghavakurup Raghavak",
+            "studentId": "26892649",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "20:15-20:55",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "AHMED MOHAMED ALI MOHAM",
             "studentId": "26152407",
@@ -1260,17 +2268,174 @@
           }
         }
       ],
-      "gender": "male",
-      "role": "instructor"
+      "students": [
+        {
+          "id": "26695745",
+          "name": "Blaise Afangang Nganke",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 11,
+          "time": "13:45-14:25"
+        },
+        {
+          "id": "26377059",
+          "name": "Shemels Abegaz Asefaw",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 11,
+          "time": "13:45-14:25"
+        },
+        {
+          "id": "26983308",
+          "name": "Yawar Javed Javed Hassan",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 12,
+          "time": "14:25-15:05"
+        },
+        {
+          "id": "26126551",
+          "name": "Mandip Kumar Kishori Sah",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 12,
+          "time": "14:25-15:05"
+        },
+        {
+          "id": "26945009",
+          "name": "Prince Biju Biju Mathai",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 13,
+          "time": "15:05-15:45"
+        },
+        {
+          "id": "26370168",
+          "name": "Dinith Akalanka Madduma Kanka",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 13,
+          "time": "15:05-15:45"
+        },
+        {
+          "id": "26876783",
+          "name": "Kedir Sisay Yesuf",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 14,
+          "time": "16:00-16:40"
+        },
+        {
+          "id": "26200089",
+          "name": "Md Alisan Saiduwan",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 14,
+          "time": "16:00-16:40"
+        },
+        {
+          "id": "26515758",
+          "name": "Ahmed Mohamed Elsayed Elmor",
+          "course": "LMFM05R",
+          "days": "SAT-MON-WED",
+          "slot": 15,
+          "time": "16:40-17:20"
+        },
+        {
+          "id": "25139399",
+          "name": "Mizanur Rohman Noyon",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 16,
+          "time": "17:20-18:00"
+        },
+        {
+          "id": "26986302",
+          "name": "Md Tohidul Alam Md Abul Kalam",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 16,
+          "time": "17:20-18:00"
+        },
+        {
+          "id": "26559538",
+          "name": "Md Shahin Gazi Md Gaffar Gazi",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 17,
+          "time": "18:15-18:55"
+        },
+        {
+          "id": "26441620",
+          "name": "Imran Khan Bacha Zamin",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 17,
+          "time": "18:15-18:55"
+        },
+        {
+          "id": "26245062",
+          "name": "Yousif Abdalla Mousa Ibrahim Alb",
+          "course": "LMFM10R",
+          "days": "SAT-MON-WED",
+          "slot": 18,
+          "time": "18:55-19:35"
+        },
+        {
+          "id": "26321923",
+          "name": "Muhammad Ismail Abul Kalam",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 18,
+          "time": "18:55-19:35"
+        },
+        {
+          "id": "26245920",
+          "name": "Mohammad Tausif Mohammad M",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 19,
+          "time": "19:35-20:15"
+        },
+        {
+          "id": "26821133",
+          "name": "Musab Yousif Mohamed Ahmed",
+          "course": "LMFM15R",
+          "days": "SAT-MON-WED",
+          "slot": 19,
+          "time": "19:35-20:15"
+        },
+        {
+          "id": "26892649",
+          "name": "Renjith Raghavakurup Raghavak",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 20,
+          "time": "20:15-20:55"
+        },
+        {
+          "id": "26152407",
+          "name": "Ahmed Mohamed Ali Mohamed Al",
+          "course": "LMFM05R",
+          "days": "SUN-TUE-THU",
+          "slot": 20,
+          "time": "20:15-20:55"
+        }
+      ]
     },
     {
       "id": "105528",
       "name": "Faizal Nisham Palakkal",
       "shortName": "Faizal Nisham",
+      "gender": "male",
+      "role": "instructor",
+      "isSupervisor": false,
+      "isAssistant": false,
+      "isFlexible": false,
       "category": "LMFM",
       "vehicleType": "خفيفة (LM)",
       "shift": "S2",
-      "shiftName": "الفترة الثانية (11 - 20)",
+      "shiftName": "الفترة الثانية (11 - 20) [10 حصص]",
       "shiftCode": "LMFM-S2",
       "capacity": 20,
       "occupied": 20,
@@ -1358,6 +2523,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Muhammed Hijlan Valiya Pediyek",
+            "studentId": "26214126",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "13:45-14:25",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "ABUBAKIR SULTAN NESRO",
             "studentId": "26271708",
@@ -1381,6 +2558,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Mubasheerkhan Pullanikkadan M",
+            "studentId": "26230229",
+            "course": "LMFM15R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "14:25-15:05",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MUHAMMAD QASIM SARDAR",
             "studentId": "26415506",
@@ -1404,6 +2593,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Shyam Bahadur Gurung",
+            "studentId": "26104938",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "15:05-15:45",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "PRANAV DIVAKARAN PARAMB",
             "studentId": "26642510",
@@ -1442,6 +2643,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Ranjeet Kumar Yadav Ravindra Y",
+            "studentId": "26385513",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "16:00-16:40",
+            "isFixed": false
           }
         },
         {
@@ -1465,6 +2678,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Mundir Anjillath Abdul Gafoor Kan",
+            "studentId": "26281377",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "16:40-17:20",
+            "isFixed": false
           }
         },
         {
@@ -1488,6 +2713,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Dayakar Sripelli Linganna Sripell",
+            "studentId": "26531090",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "17:20-18:00",
+            "isFixed": false
           }
         },
         {
@@ -1496,6 +2733,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Mohammed Ajnas Ambala Vattath",
+            "studentId": "26134465",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "18:15-18:55",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MAIDEEN SHAH AMANULLA S",
             "studentId": "26707863",
@@ -1534,6 +2783,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Rishikesh Ezhuvaparambil Krishna",
+            "studentId": "26939799",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "18:55-19:35",
+            "isFixed": false
           }
         },
         {
@@ -1542,6 +2803,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Muhammad Ali Saleem Zulfiqar",
+            "studentId": "25539222",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "19:35-20:15",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "ATHUL ANILKUMAR SINDHU",
             "studentId": "26568881",
@@ -1565,6 +2838,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Ali Raza Nawaz Muhammad Nawa",
+            "studentId": "26849502",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "20:15-20:55",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MD SIFUL ISLAM MD ABDUL",
             "studentId": "26889640",
@@ -1583,17 +2868,182 @@
           }
         }
       ],
-      "gender": "male",
-      "role": "instructor"
+      "students": [
+        {
+          "id": "26214126",
+          "name": "Muhammed Hijlan Valiya Pediyek",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 11,
+          "time": "13:45-14:25"
+        },
+        {
+          "id": "26271708",
+          "name": "Abubakir Sultan Nesro",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 11,
+          "time": "13:45-14:25"
+        },
+        {
+          "id": "26230229",
+          "name": "Mubasheerkhan Pullanikkadan M",
+          "course": "LMFM15R",
+          "days": "SAT-MON-WED",
+          "slot": 12,
+          "time": "14:25-15:05"
+        },
+        {
+          "id": "26415506",
+          "name": "Muhammad Qasim Sardara",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 12,
+          "time": "14:25-15:05"
+        },
+        {
+          "id": "26104938",
+          "name": "Shyam Bahadur Gurung",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 13,
+          "time": "15:05-15:45"
+        },
+        {
+          "id": "26642510",
+          "name": "Pranav Divakaran Parambath Vee",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 13,
+          "time": "15:05-15:45"
+        },
+        {
+          "id": "26558152",
+          "name": "Ahamed Irshad Kottilingal Badush",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 14,
+          "time": "16:00-16:40"
+        },
+        {
+          "id": "26385513",
+          "name": "Ranjeet Kumar Yadav Ravindra Y",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 14,
+          "time": "16:00-16:40"
+        },
+        {
+          "id": "26910120",
+          "name": "Hassan Hussein Ahmed Hussein",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 15,
+          "time": "16:40-17:20"
+        },
+        {
+          "id": "26281377",
+          "name": "Mundir Anjillath Abdul Gafoor Kan",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 15,
+          "time": "16:40-17:20"
+        },
+        {
+          "id": "26415256",
+          "name": "Juma Kabira",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 16,
+          "time": "17:20-18:00"
+        },
+        {
+          "id": "26531090",
+          "name": "Dayakar Sripelli Linganna Sripell",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 16,
+          "time": "17:20-18:00"
+        },
+        {
+          "id": "26134465",
+          "name": "Mohammed Ajnas Ambala Vattath",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 17,
+          "time": "18:15-18:55"
+        },
+        {
+          "id": "26707863",
+          "name": "Maideen Shah Amanulla Shaik Am",
+          "course": "LMFM05R",
+          "days": "SUN-TUE-THU",
+          "slot": 17,
+          "time": "18:15-18:55"
+        },
+        {
+          "id": "26203730",
+          "name": "Rahul Kozhikkara Gangadharan",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 18,
+          "time": "18:55-19:35"
+        },
+        {
+          "id": "26939799",
+          "name": "Rishikesh Ezhuvaparambil Krishna",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 18,
+          "time": "18:55-19:35"
+        },
+        {
+          "id": "25539222",
+          "name": "Muhammad Ali Saleem Zulfiqar",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 19,
+          "time": "19:35-20:15"
+        },
+        {
+          "id": "26568881",
+          "name": "Athul Anilkumar Sindhu Anilkuma",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 19,
+          "time": "19:35-20:15"
+        },
+        {
+          "id": "26849502",
+          "name": "Ali Raza Nawaz Muhammad Nawa",
+          "course": "LMFM30R",
+          "days": "SAT-MON-WED",
+          "slot": 20,
+          "time": "20:15-20:55"
+        },
+        {
+          "id": "26889640",
+          "name": "Md Siful Islam Md Abdul Khalek",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 20,
+          "time": "20:15-20:55"
+        }
+      ]
     },
     {
       "id": "106284",
       "name": "Ahmed Mohamed Ahmed Ali",
       "shortName": "Ahmed Mohamed",
+      "gender": "male",
+      "role": "instructor",
+      "isSupervisor": false,
+      "isAssistant": false,
+      "isFlexible": false,
       "category": "LMFA",
-      "vehicleType": "خفيفة (LM)",
+      "vehicleType": "خفيفة أوتوماتيك (LMFA)",
       "shift": "S2",
-      "shiftName": "الفترة الثانية (11 - 20)",
+      "shiftName": "الفترة الثانية (11 - 20) [10 حصص]",
       "shiftCode": "LMFA-S2",
       "capacity": 20,
       "occupied": 16,
@@ -1697,6 +3147,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Sahabudin Rain",
+            "studentId": "26835562",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "13:45-14:25",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "JASSIM HUSSAIN MOHAMMAD",
             "studentId": "26777211",
@@ -1727,6 +3189,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Leenard Thomas Joseph",
+            "studentId": "26964507",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "15:05-15:45",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "RASHED OSMAN ALI OSMA",
             "studentId": "26273660",
@@ -1750,6 +3224,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Mayed Nabil Ali Hanoun Alnaqbi",
+            "studentId": "26835146",
+            "course": "LMFA10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "16:00-16:40",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MOHAMMED KHALID MOHAMME",
             "studentId": "26435675",
@@ -1772,7 +3258,19 @@
           "sat": "occupied",
           "sun": "empty",
           "origSat": "occupied",
-          "origSun": "empty"
+          "origSun": "empty",
+          "satDetails": {
+            "studentName": "Ali Hareb Ghareib Hareb Alhefeit",
+            "studentId": "23325584",
+            "course": "LMFA10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "16:40-17:20",
+            "isFixed": false
+          }
         },
         {
           "slot": 16,
@@ -1795,6 +3293,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Salem Ebraheim Ahmed Salem Alk",
+            "studentId": "26263220",
+            "course": "LMFA10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "17:20-18:00",
+            "isFixed": false
           }
         },
         {
@@ -1802,7 +3312,19 @@
           "sat": "occupied",
           "sun": "empty",
           "origSat": "occupied",
-          "origSun": "empty"
+          "origSun": "empty",
+          "satDetails": {
+            "studentName": "Eslam Fawzy Mahmoud Eldik",
+            "studentId": "26902637",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "18:15-18:55",
+            "isFixed": false
+          }
         },
         {
           "slot": 18,
@@ -1825,6 +3347,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Ahmadou Camara",
+            "studentId": "26860684",
+            "course": "LMFA20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "18:55-19:35",
+            "isFixed": false
           }
         },
         {
@@ -1833,6 +3367,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Ali Mohamed Ali Mohamed Alhant",
+            "studentId": "25714400",
+            "course": "LMFA10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "19:35-20:15",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "ALI MOHAMED ALI MOHAMED",
             "studentId": "25714400",
@@ -1856,6 +3402,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Hamdan Khaled Ali Ahmed Almad",
+            "studentId": "26428704",
+            "course": "LMFA10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "20:15-20:55",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "HAMDAN KHALED ALI AHMED",
             "studentId": "26428704",
@@ -1874,15 +3432,132 @@
           }
         }
       ],
-      "gender": "male",
-      "role": "instructor"
+      "students": [
+        {
+          "id": "26835562",
+          "name": "Sahabudin Rain",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 11,
+          "time": "13:45-14:25"
+        },
+        {
+          "id": "26777211",
+          "name": "Jassim Hussain Mohammad Alqas",
+          "course": "LMFA10R",
+          "days": "SUN-TUE-THU",
+          "slot": 11,
+          "time": "13:45-14:25"
+        },
+        {
+          "id": "26964507",
+          "name": "Leenard Thomas Joseph",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 13,
+          "time": "15:05-15:45"
+        },
+        {
+          "id": "26273660",
+          "name": "Rashed Osman Ali Osman",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 13,
+          "time": "15:05-15:45"
+        },
+        {
+          "id": "26835146",
+          "name": "Mayed Nabil Ali Hanoun Alnaqbi",
+          "course": "LMFA10R",
+          "days": "SAT-MON-WED",
+          "slot": 14,
+          "time": "16:00-16:40"
+        },
+        {
+          "id": "26435675",
+          "name": "Mohammed Khalid Mohammed Ab",
+          "course": "LMFA10R",
+          "days": "SUN-TUE-THU",
+          "slot": 14,
+          "time": "16:00-16:40"
+        },
+        {
+          "id": "23325584",
+          "name": "Ali Hareb Ghareib Hareb Alhefeit",
+          "course": "LMFA10R",
+          "days": "SAT-MON-WED",
+          "slot": 15,
+          "time": "16:40-17:20"
+        },
+        {
+          "id": "26488481",
+          "name": "Omar Eisa Abdulla Ahmed Almarz",
+          "course": "LMFA10R",
+          "days": "SUN-TUE-THU",
+          "slot": 16,
+          "time": "17:20-18:00"
+        },
+        {
+          "id": "26263220",
+          "name": "Salem Ebraheim Ahmed Salem Alk",
+          "course": "LMFA10R",
+          "days": "SAT-MON-WED",
+          "slot": 16,
+          "time": "17:20-18:00"
+        },
+        {
+          "id": "26902637",
+          "name": "Eslam Fawzy Mahmoud Eldik",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 17,
+          "time": "18:15-18:55"
+        },
+        {
+          "id": "26238982",
+          "name": "Amro Mazin Nader Mansour",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 18,
+          "time": "18:55-19:35"
+        },
+        {
+          "id": "26860684",
+          "name": "Ahmadou Camara",
+          "course": "LMFA20R",
+          "days": "SAT-MON-WED",
+          "slot": 18,
+          "time": "18:55-19:35"
+        },
+        {
+          "id": "25714400",
+          "name": "Ali Mohamed Ali Mohamed Alhant",
+          "course": "LMFA10R",
+          "days": "SAT-THU",
+          "slot": 19,
+          "time": "19:35-20:15"
+        },
+        {
+          "id": "26428704",
+          "name": "Hamdan Khaled Ali Ahmed Almad",
+          "course": "LMFA10R",
+          "days": "SAT-THU",
+          "slot": 20,
+          "time": "20:15-20:55"
+        }
+      ]
     },
     {
       "id": "180040",
       "name": "ASHRAF ALI ASHIQ HUSSAIN",
       "shortName": "ASHRAF ALI",
+      "gender": "male",
+      "role": "supervisor",
+      "isSupervisor": true,
+      "isAssistant": false,
+      "isFlexible": true,
       "category": "LMFM",
-      "vehicleType": "خفيفة عادي (LMFM)",
+      "vehicleType": "خفيفة (LM)",
       "shift": "SUP",
       "shiftName": "مشرف (Supervisor) - تكليف عند الحاجة",
       "shiftCode": "SUP-LMFM",
@@ -1891,7 +3566,7 @@
       "empty": 0,
       "rate": "100.0",
       "minSlot": 1,
-      "maxSlot": 10,
+      "maxSlot": 20,
       "note": "",
       "reportPage": 4,
       "slotsRows": [],
@@ -1902,6 +3577,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "",
+            "studentId": "26634817",
+            "course": "LMFM30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "07:40-08:20",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "HASSAN BIN ABDUL AZIZ K",
             "studentId": "26634817",
@@ -1947,28 +3634,104 @@
           "sat": "occupied",
           "sun": "occupied",
           "origSat": "occupied",
-          "origSun": "occupied"
+          "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Nawar Saeed Rashed Saeed Alha",
+            "studentId": "26269514",
+            "course": "LMFA20I",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "10:35-11:15",
+            "isFixed": false
+          },
+          "sunDetails": {
+            "studentName": "Nawar Saeed Rashed Saeed Alha",
+            "studentId": "26269514",
+            "course": "LMFA20I",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "10:35-11:15",
+            "isFixed": false
+          }
         },
         {
           "slot": 8,
           "sat": "occupied",
           "sun": "occupied",
           "origSat": "occupied",
-          "origSun": "occupied"
+          "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Alyah Abdulla Saeed Aldheib Alhm",
+            "studentId": "26668295",
+            "course": "LMFA20I",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "11:30-12:10",
+            "isFixed": false
+          },
+          "sunDetails": {
+            "studentName": "Alyah Abdulla Saeed Aldheib Alhm",
+            "studentId": "26668295",
+            "course": "LMFA20I",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "11:30-12:10",
+            "isFixed": false
+          }
         }
       ],
-      "gender": "male",
-      "role": "supervisor",
-      "isSupervisor": true
+      "students": [
+        {
+          "id": "26634817",
+          "name": "",
+          "course": "LMFM30R",
+          "days": "SAT-THU",
+          "slot": 3,
+          "time": "07:40-08:20"
+        },
+        {
+          "id": "26269514",
+          "name": "Nawar Saeed Rashed Saeed Alha",
+          "course": "LMFA20I",
+          "days": "SAT-THU",
+          "slot": 7,
+          "time": "10:35-11:15"
+        },
+        {
+          "id": "26668295",
+          "name": "Alyah Abdulla Saeed Aldheib Alhm",
+          "course": "LMFA20I",
+          "days": "SAT-THU",
+          "slot": 8,
+          "time": "11:30-12:10"
+        }
+      ]
     },
     {
       "id": "190207",
       "name": "WALI MUHAMMAD SAEED ULLAH",
       "shortName": "WALI MUHAMMAD",
+      "gender": "male",
+      "role": "instructor",
+      "isSupervisor": false,
+      "isAssistant": false,
+      "isFlexible": false,
       "category": "HT",
       "vehicleType": "شاحنة ثقيلة (HT)",
       "shift": "S1",
-      "shiftName": "الفترة الأولى (1 - 12)",
+      "shiftName": "الفترة الأولى (1 - 12) [12 حصة]",
       "shiftCode": "HTFM-S1",
       "capacity": 24,
       "occupied": 23,
@@ -1986,6 +3749,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Amir Khan Islam Ud Din",
+            "studentId": "26408988",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "06:20-06:50",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "JASWINDER SINGH HARBHA",
             "studentId": "26715273",
@@ -2024,6 +3799,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Bahaa Mostafa Abdelmoneim Ahm",
+            "studentId": "25916212",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "06:50-07:20",
+            "isFixed": false
           }
         },
         {
@@ -2047,6 +3834,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Akashdeep Singh Sukhdev Singh",
+            "studentId": "26336148",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "07:25-07:55",
+            "isFixed": false
           }
         },
         {
@@ -2055,6 +3854,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Jashanpreet Singh Sukhjit Sing",
+            "studentId": "26163486",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "07:55-08:25",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "NOOR SHAH ZEB SAID ZAD",
             "studentId": "26492841",
@@ -2078,6 +3889,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Harpartap Singh Bikramjit Singh",
+            "studentId": "26525858",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "08:50-09:20",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MOHAMED NAGAH SHAABAN E",
             "studentId": "26867664",
@@ -2101,6 +3924,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Muhammad Younis Abdul Mana",
+            "studentId": "26485117",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "09:20-09:50",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "FADAL FAWWAZ FADAL AL J",
             "studentId": "26399600",
@@ -2124,6 +3959,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Mustafa Elhendi Fadlelmoula Hab",
+            "studentId": "26159164",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "09:55-10:25",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MOHAMED KOTB FARES KO",
             "studentId": "26708307",
@@ -2147,6 +3994,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Arshdeep Prem Pal",
+            "studentId": "26449401",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "10:25-10:55",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "YASSIN HUSSEIN SAYED H",
             "studentId": "26844887",
@@ -2185,6 +4044,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Punit Kumar Jitender Kumar",
+            "studentId": "26551052",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "11:20-11:50",
+            "isFixed": false
           }
         },
         {
@@ -2208,6 +4079,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Gurpreet Singh Surjeet Singh",
+            "studentId": "26401000",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "11:50-12:20",
+            "isFixed": false
           }
         },
         {
@@ -2216,6 +4099,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Muhammad Abdul Razaq Azim",
+            "studentId": "26560867",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "12:25-12:55",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MOHAMMED AKMOL ALI MOHA",
             "studentId": "26588956",
@@ -2238,7 +4133,19 @@
           "sat": "occupied",
           "sun": "empty",
           "origSat": "occupied",
-          "origSun": "empty"
+          "origSun": "empty",
+          "satDetails": {
+            "studentName": "Gurdev Singh Bakhshish Singh",
+            "studentId": "26964702",
+            "course": "HTFM20R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "12:55-13:25",
+            "isFixed": false
+          }
         },
         {
           "slot": 13,
@@ -2325,17 +4232,206 @@
           "origSun": "empty"
         }
       ],
-      "gender": "male",
-      "role": "instructor"
+      "students": [
+        {
+          "id": "26408988",
+          "name": "Amir Khan Islam Ud Din",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 1,
+          "time": "06:20-06:50"
+        },
+        {
+          "id": "26715273",
+          "name": "Jaswinder Singh Harbhawan Sing",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 1,
+          "time": "06:20-06:50"
+        },
+        {
+          "id": "26401623",
+          "name": "Dilpreet Singh Virsa Singh",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 2,
+          "time": "06:50-07:20"
+        },
+        {
+          "id": "25916212",
+          "name": "Bahaa Mostafa Abdelmoneim Ahm",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 2,
+          "time": "06:50-07:20"
+        },
+        {
+          "id": "26857984",
+          "name": "Ranbir Singh Jassa Singh",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 3,
+          "time": "07:25-07:55"
+        },
+        {
+          "id": "26336148",
+          "name": "Akashdeep Singh Sukhdev Singh",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 3,
+          "time": "07:25-07:55"
+        },
+        {
+          "id": "26163486",
+          "name": "Jashanpreet Singh Sukhjit Sing",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 4,
+          "time": "07:55-08:25"
+        },
+        {
+          "id": "26492841",
+          "name": "Noor Shah Zeb Said Zada",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 4,
+          "time": "07:55-08:25"
+        },
+        {
+          "id": "26525858",
+          "name": "Harpartap Singh Bikramjit Singh",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 5,
+          "time": "08:50-09:20"
+        },
+        {
+          "id": "26867664",
+          "name": "",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 5,
+          "time": "08:50-09:20"
+        },
+        {
+          "id": "26485117",
+          "name": "Muhammad Younis Abdul Mana",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 6,
+          "time": "09:20-09:50"
+        },
+        {
+          "id": "26399600",
+          "name": "",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 6,
+          "time": "09:20-09:50"
+        },
+        {
+          "id": "26159164",
+          "name": "Mustafa Elhendi Fadlelmoula Hab",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 7,
+          "time": "09:55-10:25"
+        },
+        {
+          "id": "26708307",
+          "name": "",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 7,
+          "time": "09:55-10:25"
+        },
+        {
+          "id": "26449401",
+          "name": "Arshdeep Prem Pal",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 8,
+          "time": "10:25-10:55"
+        },
+        {
+          "id": "26844887",
+          "name": "",
+          "course": "LMFM30R",
+          "days": "SUN-TUE-THU",
+          "slot": 8,
+          "time": "10:25-10:55"
+        },
+        {
+          "id": "26569273",
+          "name": "Randeep Singh Dilbag Singh",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 9,
+          "time": "11:20-11:50"
+        },
+        {
+          "id": "26551052",
+          "name": "Punit Kumar Jitender Kumar",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 9,
+          "time": "11:20-11:50"
+        },
+        {
+          "id": "26909008",
+          "name": "Pargat Singh Jagtar Singh",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 10,
+          "time": "11:50-12:20"
+        },
+        {
+          "id": "26401000",
+          "name": "Gurpreet Singh Surjeet Singh",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 10,
+          "time": "11:50-12:20"
+        },
+        {
+          "id": "26560867",
+          "name": "Muhammad Abdul Razaq Azim",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 11,
+          "time": "12:25-12:55"
+        },
+        {
+          "id": "26588956",
+          "name": "Mohammed Akmol Ali Mohammed",
+          "course": "HTFM20R",
+          "days": "SUN-TUE-THU",
+          "slot": 11,
+          "time": "12:25-12:55"
+        },
+        {
+          "id": "26964702",
+          "name": "Gurdev Singh Bakhshish Singh",
+          "course": "HTFM20R",
+          "days": "SAT-MON-WED",
+          "slot": 12,
+          "time": "12:55-13:25"
+        }
+      ]
     },
     {
       "id": "200275",
       "name": "KUNHUMUHAMMED KATTILA VALAPPIL",
       "shortName": "KUNHUMUHAMMED KATTILA",
+      "gender": "male",
+      "role": "instructor",
+      "isSupervisor": false,
+      "isAssistant": false,
+      "isFlexible": false,
       "category": "MC",
       "vehicleType": "دراجة نارية (MC)",
       "shift": "FIX",
-      "shiftName": "فترة ثابتة (6 - 17)",
+      "shiftName": "فترة ثابتة بالفرع (6 - 17) [12 حصة]",
       "shiftCode": "MC-FIX",
       "capacity": 24,
       "occupied": 14,
@@ -2379,11 +4475,58 @@
       ],
       "fullSchedule": [
         {
+          "slot": 1,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 2,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 3,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 4,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 5,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
           "slot": 6,
           "sat": "occupied",
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Rubel Khan Mahabul Islam Khan",
+            "studentId": "26774798",
+            "course": "MCFM25R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "09:15-09:45",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "FAISAL OBAID ALI GHOFRA",
             "studentId": "26229591",
@@ -2407,6 +4550,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "empty",
+          "satDetails": {
+            "studentName": "Anwar Masih Nirmal Masih",
+            "studentId": "26848618",
+            "course": "MCFM25R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "09:45-10:15",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "YASIR MOHAMED ALI MURAD",
             "studentId": "26517177",
@@ -2429,14 +4584,38 @@
           "sat": "occupied",
           "sun": "empty",
           "origSat": "occupied",
-          "origSun": "empty"
+          "origSun": "empty",
+          "satDetails": {
+            "studentName": "Sultan Mohamed Ahmednour Moh",
+            "studentId": "24889696",
+            "course": "MCFM05R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "10:15-10:45",
+            "isFixed": false
+          }
         },
         {
           "slot": 9,
           "sat": "occupied",
           "sun": "empty",
           "origSat": "occupied",
-          "origSun": "empty"
+          "origSun": "empty",
+          "satDetails": {
+            "studentName": "Anurag Pal Ajit Pal",
+            "studentId": "26531116",
+            "course": "MCFM25R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "10:45-11:15",
+            "isFixed": false
+          }
         },
         {
           "slot": 10,
@@ -2472,6 +4651,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Rasidul Miah Ismile Miah",
+            "studentId": "26156292",
+            "course": "MCFM25R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "13:45-14:15",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "TAYYAB ALI SAJID IMRAN",
             "studentId": "26637934",
@@ -2510,6 +4701,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Md Tanver Hossen Mahabub Ro",
+            "studentId": "26414741",
+            "course": "MCFM25R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "14:15-14:45",
+            "isFixed": false
           }
         },
         {
@@ -2518,6 +4721,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Hamid Mehmood Shahbaz Ali",
+            "studentId": "26732091",
+            "course": "MCFM25R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "14:45-15:15",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "HARJEET SINGH SATPAL",
             "studentId": "26252102",
@@ -2541,6 +4756,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Shaharyar Ahmed Abdul Rehma",
+            "studentId": "26600368",
+            "course": "MCFM25R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "15:15-15:45",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "FARUK MIYA MOHAMMAD ISM",
             "studentId": "26710338",
@@ -2557,19 +4784,215 @@
             "student2Id": "",
             "student2Course": ""
           }
+        },
+        {
+          "slot": 18,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 19,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 20,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 21,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 22,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 23,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 24,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 25,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
+        },
+        {
+          "slot": 26,
+          "sat": "empty",
+          "sun": "empty",
+          "origSat": "empty",
+          "origSun": "empty"
         }
       ],
-      "gender": "male",
-      "role": "instructor"
+      "students": [
+        {
+          "id": "26981207",
+          "name": "Allah Nazar Khan Rasool Khan",
+          "course": "MCFM25R",
+          "days": "SAT-MON-WED",
+          "slot": 6,
+          "time": "09:15-09:45"
+        },
+        {
+          "id": "26774798",
+          "name": "Rubel Khan Mahabul Islam Khan",
+          "course": "MCFM25R",
+          "days": "SAT-MON-WED",
+          "slot": 6,
+          "time": "09:15-09:45"
+        },
+        {
+          "id": "26517177",
+          "name": "Yasir Mohamed Ali Murad Albloosh",
+          "course": "MCFM05R",
+          "days": "SUN-TUE-THU",
+          "slot": 6,
+          "time": "09:15-09:45"
+        },
+        {
+          "id": "26229591",
+          "name": "Faisal Obaid Ali Ghofran Alsereid",
+          "course": "MCFM05R",
+          "days": "SUN-TUE-THU",
+          "slot": 6,
+          "time": "09:15-09:45"
+        },
+        {
+          "id": "26848618",
+          "name": "Anwar Masih Nirmal Masih",
+          "course": "MCFM25R",
+          "days": "SAT-MON-WED",
+          "slot": 7,
+          "time": "09:45-10:15"
+        },
+        {
+          "id": "24889696",
+          "name": "Sultan Mohamed Ahmednour Moh",
+          "course": "MCFM05R",
+          "days": "SAT-MON-WED",
+          "slot": 8,
+          "time": "10:15-10:45"
+        },
+        {
+          "id": "26531116",
+          "name": "Anurag Pal Ajit Pal",
+          "course": "MCFM25R",
+          "days": "SAT-MON-WED",
+          "slot": 9,
+          "time": "10:45-11:15"
+        },
+        {
+          "id": "26416164",
+          "name": "Asheer Muhammad Fateh Khan",
+          "course": "MCFM25R",
+          "days": "SAT-MON-WED",
+          "slot": 14,
+          "time": "13:45-14:15"
+        },
+        {
+          "id": "26156292",
+          "name": "Rasidul Miah Ismile Miah",
+          "course": "MCFM25R",
+          "days": "SAT-MON-WED",
+          "slot": 14,
+          "time": "13:45-14:15"
+        },
+        {
+          "id": "26637934",
+          "name": "Tayyab Ali Sajid Imran",
+          "course": "MCFM25R",
+          "days": "SUN-TUE-THU",
+          "slot": 14,
+          "time": "13:45-14:15"
+        },
+        {
+          "id": "26757700",
+          "name": "Mohammed Riyas Kodinhiyath Ha",
+          "course": "MCFM25R",
+          "days": "SUN-TUE-THU",
+          "slot": 15,
+          "time": "14:15-14:45"
+        },
+        {
+          "id": "26414741",
+          "name": "Md Tanver Hossen Mahabub Ro",
+          "course": "MCFM25R",
+          "days": "SAT-MON-WED",
+          "slot": 15,
+          "time": "14:15-14:45"
+        },
+        {
+          "id": "26732091",
+          "name": "Hamid Mehmood Shahbaz Ali",
+          "course": "MCFM25R",
+          "days": "SAT-MON-WED",
+          "slot": 16,
+          "time": "14:45-15:15"
+        },
+        {
+          "id": "26252102",
+          "name": "Harjeet Singh Satpal Singh",
+          "course": "MCFM25R",
+          "days": "SUN-TUE-THU",
+          "slot": 16,
+          "time": "14:45-15:15"
+        },
+        {
+          "id": "26600368",
+          "name": "Shaharyar Ahmed Abdul Rehma",
+          "course": "MCFM25R",
+          "days": "SAT-MON-WED",
+          "slot": 17,
+          "time": "15:15-15:45"
+        },
+        {
+          "id": "26710338",
+          "name": "Faruk Miya Mohammad Ismile Mi",
+          "course": "MCFM25R",
+          "days": "SUN-TUE-THU",
+          "slot": 17,
+          "time": "15:15-15:45"
+        }
+      ]
     },
     {
       "id": "200283",
       "name": "MOHAMMED AREF AHMED OMAR",
       "shortName": "MOHAMMED AREF",
+      "gender": "male",
+      "role": "instructor",
+      "isSupervisor": false,
+      "isAssistant": false,
+      "isFlexible": false,
       "category": "LMFA",
-      "vehicleType": "خفيفة (LM)",
+      "vehicleType": "خفيفة أوتوماتيك (LMFA)",
       "shift": "S1",
-      "shiftName": "الفترة الأولى (1 - 10)",
+      "shiftName": "الفترة الأولى (1 - 10) [10 حصص]",
       "shiftCode": "LMFA-S1",
       "capacity": 20,
       "occupied": 20,
@@ -2587,6 +5010,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Muhammad Adnan Nazir Muhamm",
+            "studentId": "26235588",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "06:20-07:00",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MUHAMMAD ADNAN NAZIR M",
             "studentId": "26235588",
@@ -2625,6 +5060,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Abdelrahman Mohamed Rezk Elg",
+            "studentId": "26569259",
+            "course": "LMFA05R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "07:00-07:40",
+            "isFixed": false
           }
         },
         {
@@ -2633,6 +5080,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Anas Ahmed Mohamed Abdelmo",
+            "studentId": "26861893",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "07:40-08:20",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "ANAS AHMED MOHAMED AB",
             "studentId": "26861893",
@@ -2656,6 +5115,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Nazmul Hossain Idris Ali Bepari",
+            "studentId": "26426939",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "08:20-09:00",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MOHAMMED HASHIQUE KOTTI",
             "studentId": "26451531",
@@ -2679,6 +5150,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Ahmed Abdullrahman Ali Mohame",
+            "studentId": "26470004",
+            "course": "LMFA20Z",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "09:15-09:55",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "FAHAD ALI GHARIB AZIZ A",
             "studentId": "26155316",
@@ -2702,6 +5185,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Hasssan Ali Rashid Abbad Alsheh",
+            "studentId": "26530136",
+            "course": "LMFA10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "09:55-10:35",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MAHAMMED KAIF ALI SAB G",
             "studentId": "26453346",
@@ -2740,6 +5235,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Mohammed Abdalla Mohammed O",
+            "studentId": "26230372",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "10:35-11:15",
+            "isFixed": false
           }
         },
         {
@@ -2763,6 +5270,18 @@
             "student2Name": "",
             "student2Id": "",
             "student2Course": ""
+          },
+          "satDetails": {
+            "studentName": "Shibir Ahmed Khan Sitar Khan",
+            "studentId": "26188281",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "11:30-12:10",
+            "isFixed": false
           }
         },
         {
@@ -2771,6 +5290,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Mahmoud Tarek Mohamed Salem",
+            "studentId": "26464570",
+            "course": "LMFA30R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "12:10-12:50",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "OBAID RASHED ALI KHALFA",
             "studentId": "26985190",
@@ -2794,6 +5325,18 @@
           "sun": "occupied",
           "origSat": "occupied",
           "origSun": "occupied",
+          "satDetails": {
+            "studentName": "Hamdan Abdalla Murad Eisa Alray",
+            "studentId": "26271130",
+            "course": "LMFA10R",
+            "location": "R",
+            "isDouble": false,
+            "classType": "R",
+            "isDoublePart1": false,
+            "isDoublePart2": false,
+            "time": "12:50-13:30",
+            "isFixed": false
+          },
           "sunDetails": {
             "studentName": "MOHAMED AHMED ABDELRAHM",
             "studentId": "26659800",
@@ -2882,8 +5425,152 @@
           "origSun": "empty"
         }
       ],
-      "gender": "male",
-      "role": "instructor"
+      "students": [
+        {
+          "id": "26235588",
+          "name": "Muhammad Adnan Nazir Muhamm",
+          "course": "LMFA30R",
+          "days": "SAT-THU",
+          "slot": 1,
+          "time": "06:20-07:00"
+        },
+        {
+          "id": "26854118",
+          "name": "Didarul Islam Nurussafa",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 2,
+          "time": "07:00-07:40"
+        },
+        {
+          "id": "26569259",
+          "name": "Abdelrahman Mohamed Rezk Elg",
+          "course": "LMFA05R",
+          "days": "SAT-MON-WED",
+          "slot": 2,
+          "time": "07:00-07:40"
+        },
+        {
+          "id": "26861893",
+          "name": "Anas Ahmed Mohamed Abdelmo",
+          "course": "LMFA30R",
+          "days": "SAT-THU",
+          "slot": 3,
+          "time": "07:40-08:20"
+        },
+        {
+          "id": "26426939",
+          "name": "Nazmul Hossain Idris Ali Bepari",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 4,
+          "time": "08:20-09:00"
+        },
+        {
+          "id": "26451531",
+          "name": "Mohammed Hashique Kottiyadan",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 4,
+          "time": "08:20-09:00"
+        },
+        {
+          "id": "26470004",
+          "name": "Ahmed Abdullrahman Ali Mohame",
+          "course": "LMFA20Z",
+          "days": "SAT-MON-WED",
+          "slot": 5,
+          "time": "09:15-09:55"
+        },
+        {
+          "id": "26155316",
+          "name": "Fahad Ali Gharib Aziz Alnaqbi",
+          "course": "LMFA10R",
+          "days": "SUN-TUE-THU",
+          "slot": 5,
+          "time": "09:15-09:55"
+        },
+        {
+          "id": "26530136",
+          "name": "Hasssan Ali Rashid Abbad Alsheh",
+          "course": "LMFA10R",
+          "days": "SAT-MON-WED",
+          "slot": 6,
+          "time": "09:55-10:35"
+        },
+        {
+          "id": "26453346",
+          "name": "Mahammed Kaif Ali Sab Gaima Al",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 6,
+          "time": "09:55-10:35"
+        },
+        {
+          "id": "26524900",
+          "name": "Omar Moahannad Al Toobh",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 7,
+          "time": "10:35-11:15"
+        },
+        {
+          "id": "26230372",
+          "name": "Mohammed Abdalla Mohammed O",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 7,
+          "time": "10:35-11:15"
+        },
+        {
+          "id": "26700999",
+          "name": "Afroj Ansari Mustfa Hussain",
+          "course": "LMFA30R",
+          "days": "SUN-TUE-THU",
+          "slot": 8,
+          "time": "11:30-12:10"
+        },
+        {
+          "id": "26188281",
+          "name": "Shibir Ahmed Khan Sitar Khan",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 8,
+          "time": "11:30-12:10"
+        },
+        {
+          "id": "26464570",
+          "name": "Mahmoud Tarek Mohamed Salem",
+          "course": "LMFA30R",
+          "days": "SAT-MON-WED",
+          "slot": 9,
+          "time": "12:10-12:50"
+        },
+        {
+          "id": "26985190",
+          "name": "Obaid Rashed Ali Khalfan Alzahm",
+          "course": "LMFA10R",
+          "days": "SUN-TUE-THU",
+          "slot": 9,
+          "time": "12:10-12:50"
+        },
+        {
+          "id": "26271130",
+          "name": "Hamdan Abdalla Murad Eisa Alray",
+          "course": "LMFA10R",
+          "days": "SAT-MON-WED",
+          "slot": 10,
+          "time": "12:50-13:30"
+        },
+        {
+          "id": "26659800",
+          "name": "Mohamed Ahmed Abdelrahman S",
+          "course": "LMFA05R",
+          "days": "SUN-TUE-THU",
+          "slot": 10,
+          "time": "12:50-13:30"
+        }
+      ]
     }
   ],
   "dayPlan": {
@@ -3043,6 +5730,10 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "S2",
+        "shiftCode": "HTFM-S2",
         "yardCount": 9,
         "roadCount": 2,
         "doubleCount": 0,
@@ -3187,6 +5878,10 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "S1",
+        "shiftCode": "LMFM-S1",
         "yardCount": 0,
         "roadCount": 10,
         "doubleCount": 0,
@@ -3331,6 +6026,10 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "S2",
+        "shiftCode": "LMFA-S2",
         "yardCount": 2,
         "roadCount": 8,
         "doubleCount": 0,
@@ -3475,6 +6174,10 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "S2",
+        "shiftCode": "LMFM-S2",
         "yardCount": 6,
         "roadCount": 4,
         "doubleCount": 0,
@@ -3619,6 +6322,10 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "S2",
+        "shiftCode": "LMFM-S2",
         "yardCount": 3,
         "roadCount": 7,
         "doubleCount": 0,
@@ -3724,6 +6431,10 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "S2",
+        "shiftCode": "LMFA-S2",
         "yardCount": 4,
         "roadCount": 3,
         "doubleCount": 0,
@@ -3764,6 +6475,10 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "S1",
+        "shiftCode": "LMFM-S1",
         "yardCount": 0,
         "roadCount": 2,
         "doubleCount": 0,
@@ -3921,6 +6636,10 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "S1",
+        "shiftCode": "HTFM-S1",
         "yardCount": 7,
         "roadCount": 4,
         "doubleCount": 0,
@@ -4019,6 +6738,10 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "FIX",
+        "shiftCode": "MC-FIX",
         "yardCount": 3,
         "roadCount": 3,
         "doubleCount": 0,
@@ -4163,12 +6886,18 @@
             "hasDualStudents": false
           }
         ],
+        "isSupervisor": false,
+        "isAssistant": false,
+        "shift": "S1",
+        "shiftCode": "LMFA-S1",
         "yardCount": 2,
         "roadCount": 8,
         "doubleCount": 0,
         "totalCount": 10
       }
     ],
+    "warnings": [],
+    "hasWarnings": false,
     "stats": {
       "totalInstructors": 10,
       "totalSessions": 87,
@@ -4180,11 +6909,11 @@
       "roadPercentage": "58.6"
     }
   },
-  "activeFileName": "Print-27.pdf",
-  "activeFileTime": "⚡ تم التحليل اللحظي: 10:05:13 م",
+  "activeFileName": "Print-27.pdf (الملف الرسمي المعتمد)",
+  "activeFileTime": "⚡ تم التحليل اللحظي المباشر",
   "dayPlanFileName": "2 ملفات (Print-26.pdf + Print-25.pdf)",
-  "dayPlanFileTime": "⚡ تم التحليل اللحظي: 10:06:07 م",
-  "lastUpdatedBy": "client_ot27bcf",
-  "updatedAt": "2026-10-12T18:39:00.205Z",
-  "version": 1791740338722
+  "dayPlanFileTime": "⚡ تم التحليل اللحظي: 02:05:22 ص",
+  "lastUpdatedBy": "client_vbltlct",
+  "updatedAt": "2026-10-22T22:05:28.233Z",
+  "version": 1792706149004
 }

@@ -36,6 +36,20 @@ class SDIReportApp {
         return false;
     }
 
+    isAssistant(inst) {
+        if (!inst) return false;
+        if (inst.isAssistant === true || inst.role === 'assistant' || inst.shift === 'AST') return true;
+        if (typeof SDIMasterRoster !== 'undefined') {
+            return SDIMasterRoster.isAssistant(inst);
+        }
+        return false;
+    }
+
+    isFlexibleRole(inst) {
+        if (!inst) return false;
+        return this.isSupervisor(inst) || this.isAssistant(inst);
+    }
+
     constructor() {
         const saved = localStorage.getItem('sdi_instructors_custom');
         const defaultInsts = (typeof OFFICIAL_INSTRUCTORS !== 'undefined') ? JSON.parse(JSON.stringify(OFFICIAL_INSTRUCTORS)) : [];
@@ -55,18 +69,20 @@ class SDIReportApp {
                         if (!inst.gender) inst.gender = rosterMeta.gender;
                         if (!inst.role) inst.role = rosterMeta.role;
                         if (rosterMeta.role === 'supervisor') inst.isSupervisor = true;
+                        if (rosterMeta.role === 'assistant') inst.isAssistant = true;
                     } else {
                         // إعدادات افتراضية
                         if (!inst.gender) inst.gender = 'male';
-                        if (!inst.role) inst.role = inst.isSupervisor ? 'supervisor' : 'instructor';
+                        if (!inst.role) inst.role = inst.isSupervisor ? 'supervisor' : (inst.isAssistant ? 'assistant' : 'instructor');
                     }
 
-                    if (this.isSupervisor(inst)) {
+                    if (this.isFlexibleRole(inst)) {
                         SDIMasterRoster.pruneSupervisorSchedule(inst);
-                    } else if (inst.gender === 'female' && (inst.category === 'LMFM' || inst.category === 'LMFA')) {
-                        if (inst.shift === 'S1') { inst.minSlot = 1; inst.maxSlot = 9; }
-                        else if (inst.shift === 'S2') { inst.minSlot = 11; inst.maxSlot = 19; }
-                        inst.capacity = 18;
+                    } else {
+                        const rules = SDIMasterRoster.getShiftRules(inst.category, inst.shift, inst.gender, inst.role);
+                        inst.minSlot = rules.minSlot;
+                        inst.maxSlot = rules.maxSlot;
+                        inst.capacity = rules.capacity;
                     }
                 });
             }
@@ -288,13 +304,15 @@ class SDIReportApp {
                     if (!inst.gender) inst.gender = rosterMeta.gender;
                     if (!inst.role) inst.role = rosterMeta.role;
                     if (rosterMeta.role === 'supervisor') inst.isSupervisor = true;
+                    if (rosterMeta.role === 'assistant') inst.isAssistant = true;
                 }
-                if (this.isSupervisor(inst)) {
+                if (this.isFlexibleRole(inst)) {
                     SDIMasterRoster.pruneSupervisorSchedule(inst);
-                } else if (inst.gender === 'female' && (inst.category === 'LMFM' || inst.category === 'LMFA')) {
-                    if (inst.shift === 'S1') { inst.minSlot = 1; inst.maxSlot = 9; }
-                    else if (inst.shift === 'S2') { inst.minSlot = 11; inst.maxSlot = 19; }
-                    inst.capacity = 18;
+                } else {
+                    const rules = SDIMasterRoster.getShiftRules(inst.category, inst.shift, inst.gender, inst.role);
+                    inst.minSlot = rules.minSlot;
+                    inst.maxSlot = rules.maxSlot;
+                    inst.capacity = rules.capacity;
                 }
             });
         }
@@ -436,7 +454,9 @@ class SDIReportApp {
             LMFM: { cap: 0, occ: 0, emp: 0, rate: 0 },
             LMFA: { cap: 0, occ: 0, emp: 0, rate: 0 },
             MC:   { cap: 0, occ: 0, emp: 0, rate: 0 },
-            HT:   { cap: 0, occ: 0, emp: 0, rate: 0 }
+            HT:   { cap: 0, occ: 0, emp: 0, rate: 0 },
+            HB:   { cap: 0, occ: 0, emp: 0, rate: 0 },
+            LB:   { cap: 0, occ: 0, emp: 0, rate: 0 }
         };
 
         const instructorStats = this.instructors.map(inst => {
@@ -445,11 +465,14 @@ class SDIReportApp {
             let cap = 0;
             let rate = "0.0";
 
+            const isFlex = this.isFlexibleRole(inst);
             const isSup = this.isSupervisor(inst);
-            if (isSup) {
-                // قاعدة المشرف (Supervisor) المعتمدة:
-                // المشرف ليس لديه جدول تدريب نظامي (لا توجد أي حصص خالية تؤثر على الداشبورد أو معدلات الإشغال)
-                // الحصص المشغولة = الحصص المسندة إليه فقط
+            const isAst = this.isAssistant(inst);
+
+            if (isFlex) {
+                // قاعدة مساعد المدرب والمشرف (Flexible Schedule - Assistant & Supervisor):
+                // ليس لديه جدول تدريب نظامي (لا توجد أي حصص خالية تؤثر على الداشبورد أو معدلات الإشغال)
+                // الحصص المشغولة = الحصص المسندة إليه فقط (تدريب حصتين -> 2 فقط، 3 حصص -> 3 فقط)
                 // الحصص الخالية = 0 تماماً
                 // السعة = عدد الحصص المشغولة المسندة
                 // معدل الإشغال = 100.0% دائماً عند وجود حصص (أو 0.0% عند عدم وجود حصص)
@@ -458,9 +481,9 @@ class SDIReportApp {
                     if (s.sun === 'occupied') occ++;
                 });
                 cap = occ;
-                emp = 0; // ممنوع احتساب أي حصص خالية للمشرف
+                emp = 0; // ممنوع احتساب أي حصص خالية للمساعد والمشرف
                 rate = occ > 0 ? "100.0" : "0.0";
-                inst.slotsRows = []; // تصفير تقرير الحصص الفارغة للمشرف
+                inst.slotsRows = []; // تصفير تقرير الحصص الفارغة للمساعد والمشرف
             } else {
                 const shiftSlots = this.getInstructorShiftSlots(inst);
                 shiftSlots.forEach(s => {
@@ -480,20 +503,31 @@ class SDIReportApp {
             totalOcc += occ;
             totalEmp += emp;
 
-            if (categories[inst.category]) {
-                categories[inst.category].cap += cap;
-                categories[inst.category].occ += occ;
-                categories[inst.category].emp += emp;
+            const catKey = (inst.category === 'LB') ? 'HB' : inst.category;
+            if (categories[catKey]) {
+                categories[catKey].cap += cap;
+                categories[catKey].occ += occ;
+                categories[catKey].emp += emp;
+            }
+            if (inst.category === 'LB' && categories.LB) {
+                categories.LB.cap += cap;
+                categories.LB.occ += occ;
+                categories.LB.emp += emp;
             }
 
             return {
                 id: inst.id,
                 name: inst.shortName || inst.name,
                 category: inst.category,
-                categoryAr: (inst.category === 'LMFM') ? 'عادي (LMFM)' : ((inst.category === 'LMFA') ? 'أوتوماتيك (LMFA)' : (inst.category === 'MC' ? 'دراجة (MC)' : 'شاحنة (HTFM)')),
+                categoryAr: (inst.category === 'LMFM') ? 'عادي (LMFM)' :
+                            ((inst.category === 'LMFA') ? 'أوتوماتيك (LMFA)' :
+                            (inst.category === 'MC' ? 'دراجة (MC)' :
+                            ((inst.category === 'HB' || inst.category === 'LB') ? 'باص ثقيل (HBFM)' : 'شاحنة (HTFM)'))),
                 shiftCode: inst.shiftCode,
                 shiftName: inst.shiftName,
                 isSupervisor: isSup,
+                isAssistant: isAst,
+                isFlexible: isFlex,
                 cap,
                 occ,
                 emp,
@@ -509,8 +543,9 @@ class SDIReportApp {
         });
 
         const supervisorCount = this.instructors.filter(i => this.isSupervisor(i)).length;
-        const femaleCount = this.instructors.filter(i => i.gender === 'female' && !this.isSupervisor(i)).length;
-        const maleCount = this.instructors.filter(i => !this.isSupervisor(i) && i.gender !== 'female').length;
+        const assistantCount = this.instructors.filter(i => this.isAssistant(i)).length;
+        const femaleCount = this.instructors.filter(i => i.gender === 'female' && !this.isFlexibleRole(i)).length;
+        const maleCount = this.instructors.filter(i => !this.isFlexibleRole(i) && (i.gender === 'male' || !i.gender)).length;
 
         return {
             totalCap,
@@ -520,6 +555,7 @@ class SDIReportApp {
             categories,
             instructorStats,
             supervisorCount,
+            assistantCount,
             femaleCount,
             maleCount
         };
@@ -596,13 +632,19 @@ class SDIReportApp {
                         </div>
                     </div>
 
-                    <!-- شريط توزيع الكادر التدريبي والمشرفين (Supervisors KPI Bar) -->
+                    <!-- شريط توزيع الكادر التدريبي والمساعدين والمشرفين (Staff & Flexible KPI Bar) -->
                     <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 16px; margin: 16px 0 20px 0; flex-wrap:wrap; gap:10px;">
                         <div style="font-size:12px; color:#334155; font-weight:600;">
-                            👥 <strong>${isAr ? 'الكادر التدريبي المعتمد:' : 'Training Staff:'}</strong> ${this.instructors.length} ${isAr ? 'إجمالي' : 'Total'} | 👨 ${stats.maleCount || 0} ${isAr ? 'مدربين رسميين' : 'Instructors'} | 👩 ${stats.femaleCount || 0} ${isAr ? 'مدربات سيدات (18 حصة)' : 'Female Instructors (18 cap)'}
+                            👥 <strong>${isAr ? 'الكادر التدريبي المعتمد:' : 'Training Staff:'}</strong> ${this.instructors.length} ${isAr ? 'إجمالي' : 'Total'} | 👨 ${stats.maleCount || 0} ${isAr ? 'مدربين' : 'Instructors'} | 👩 ${stats.femaleCount || 0} ${isAr ? 'مدربات' : 'Female Instructors'}
                         </div>
-                        <div style="font-size:12px; color:#b45309; background:#fef3c7; border:1px solid #fde68a; padding:4px 12px; border-radius:6px; font-weight:700;">
-                            👔 <strong>${isAr ? 'المشرفون (تكليف طارئ):' : 'Supervisors (Ad-hoc):'}</strong> ${stats.supervisorCount || 0} ${isAr ? 'مشرف' : 'Supervisors'} | ${isAr ? 'إشغال 100% (صفر حصص فارغة)' : '100% Occupancy (0 empty slots)'}
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            ${stats.assistantCount > 0 ? `
+                            <div style="font-size:12px; color:#065f46; background:#d1fae5; border:1px solid #a7f3d0; padding:4px 10px; border-radius:6px; font-weight:700;">
+                                🤝 <strong>${isAr ? 'مساعد مدرب:' : 'Assistant:'}</strong> ${stats.assistantCount} | ${isAr ? 'جدول مرن (الحصص المسجلة فقط)' : 'Flexible (Recorded only)'}
+                            </div>` : ''}
+                            <div style="font-size:12px; color:#b45309; background:#fef3c7; border:1px solid #fde68a; padding:4px 10px; border-radius:6px; font-weight:700;">
+                                👔 <strong>${isAr ? 'المشرفون:' : 'Supervisors:'}</strong> ${stats.supervisorCount || 0} ${isAr ? 'مشرف' : 'Supervisors'} | ${isAr ? 'جدول مرن (صفر فارغة)' : 'Flexible (0 empty)'}
+                            </div>
                         </div>
                     </div>
 
@@ -613,15 +655,15 @@ class SDIReportApp {
                             <div class="cat-kpi-card-header">${this.t('catLMFM')}</div>
                             <div class="cat-kpi-card-body">
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-orange">${stats.categories.LMFM.occ}</div>
+                                    <div class="cat-kpi-val text-orange">${stats.categories.LMFM ? stats.categories.LMFM.occ : 0}</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'مشغولة' : 'Occupied'}</div>
                                 </div>
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-green">${stats.categories.LMFM.emp}</div>
+                                    <div class="cat-kpi-val text-green">${stats.categories.LMFM ? stats.categories.LMFM.emp : 0}</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'فارغة' : 'Empty'}</div>
                                 </div>
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-orange">${stats.categories.LMFM.rate}%</div>
+                                    <div class="cat-kpi-val text-orange">${stats.categories.LMFM ? stats.categories.LMFM.rate : 0}%</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'نسبة الإشغال' : 'Occupancy Rate'}</div>
                                 </div>
                             </div>
@@ -632,15 +674,15 @@ class SDIReportApp {
                             <div class="cat-kpi-card-header">${this.t('catLMFA')}</div>
                             <div class="cat-kpi-card-body">
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-orange">${stats.categories.LMFA.occ}</div>
+                                    <div class="cat-kpi-val text-orange">${stats.categories.LMFA ? stats.categories.LMFA.occ : 0}</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'مشغولة' : 'Occupied'}</div>
                                 </div>
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-green">${stats.categories.LMFA.emp}</div>
+                                    <div class="cat-kpi-val text-green">${stats.categories.LMFA ? stats.categories.LMFA.emp : 0}</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'فارغة' : 'Empty'}</div>
                                 </div>
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-orange">${stats.categories.LMFA.rate}%</div>
+                                    <div class="cat-kpi-val text-orange">${stats.categories.LMFA ? stats.categories.LMFA.rate : 0}%</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'نسبة الإشغال' : 'Occupancy Rate'}</div>
                                 </div>
                             </div>
@@ -651,15 +693,15 @@ class SDIReportApp {
                             <div class="cat-kpi-card-header">${this.t('catMC')}</div>
                             <div class="cat-kpi-card-body">
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-orange">${stats.categories.MC.occ}</div>
+                                    <div class="cat-kpi-val text-orange">${stats.categories.MC ? stats.categories.MC.occ : 0}</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'مشغولة' : 'Occupied'}</div>
                                 </div>
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-green">${stats.categories.MC.emp}</div>
+                                    <div class="cat-kpi-val text-green">${stats.categories.MC ? stats.categories.MC.emp : 0}</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'فارغة' : 'Empty'}</div>
                                 </div>
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-orange">${stats.categories.MC.rate}%</div>
+                                    <div class="cat-kpi-val text-orange">${stats.categories.MC ? stats.categories.MC.rate : 0}%</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'نسبة الإشغال' : 'Occupancy Rate'}</div>
                                 </div>
                             </div>
@@ -670,15 +712,34 @@ class SDIReportApp {
                             <div class="cat-kpi-card-header">${this.t('catHT')}</div>
                             <div class="cat-kpi-card-body">
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-orange">${stats.categories.HT.occ}</div>
+                                    <div class="cat-kpi-val text-orange">${stats.categories.HT ? stats.categories.HT.occ : 0}</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'مشغولة' : 'Occupied'}</div>
                                 </div>
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-green">${stats.categories.HT.emp}</div>
+                                    <div class="cat-kpi-val text-green">${stats.categories.HT ? stats.categories.HT.emp : 0}</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'فارغة' : 'Empty'}</div>
                                 </div>
                                 <div class="cat-kpi-stat">
-                                    <div class="cat-kpi-val text-orange">${stats.categories.HT.rate}%</div>
+                                    <div class="cat-kpi-val text-orange">${stats.categories.HT ? stats.categories.HT.rate : 0}%</div>
+                                    <div class="cat-kpi-lbl">${isAr ? 'نسبة الإشغال' : 'Occupancy Rate'}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- HB / LB (Heavy Bus) -->
+                        <div class="cat-kpi-card">
+                            <div class="cat-kpi-card-header">${this.t('catHB') || this.t('catLB')}</div>
+                            <div class="cat-kpi-card-body">
+                                <div class="cat-kpi-stat">
+                                    <div class="cat-kpi-val text-orange">${(stats.categories.HB ? stats.categories.HB.occ : 0) || (stats.categories.LB ? stats.categories.LB.occ : 0)}</div>
+                                    <div class="cat-kpi-lbl">${isAr ? 'مشغولة' : 'Occupied'}</div>
+                                </div>
+                                <div class="cat-kpi-stat">
+                                    <div class="cat-kpi-val text-green">${(stats.categories.HB ? stats.categories.HB.emp : 0) || (stats.categories.LB ? stats.categories.LB.emp : 0)}</div>
+                                    <div class="cat-kpi-lbl">${isAr ? 'فارغة' : 'Empty'}</div>
+                                </div>
+                                <div class="cat-kpi-stat">
+                                    <div class="cat-kpi-val text-orange">${(stats.categories.HB && stats.categories.HB.cap > 0 ? stats.categories.HB.rate : (stats.categories.LB ? stats.categories.LB.rate : 0))}%</div>
                                     <div class="cat-kpi-lbl">${isAr ? 'نسبة الإشغال' : 'Occupancy Rate'}</div>
                                 </div>
                             </div>
@@ -725,11 +786,16 @@ class SDIReportApp {
             stats.instructorStats.forEach(inst => {
                 const catText = isAr 
                     ? inst.categoryAr 
-                    : (inst.category === 'LMFM' ? 'Manual (LMFM)' : (inst.category === 'LMFA' ? 'Auto (LMFA)' : (inst.category === 'MC' ? 'Motorcycle (MC)' : 'Truck (HTFM)')));
+                    : (inst.category === 'LMFM' ? 'Manual (LMFM)' : (inst.category === 'LMFA' ? 'Auto (LMFA)' : (inst.category === 'MC' ? 'Motorcycle (MC)' : ((inst.category === 'HB' || inst.category === 'LB') ? 'Heavy Bus (HBFM)' : 'Heavy Truck (HTFM)'))));
 
-                const shiftCodeBadge = inst.isSupervisor
-                    ? `<span style="font-size: 10px; background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 2px 6px; border-radius: 4px; ${isAr ? 'margin-right: 6px;' : 'margin-left: 6px;'} font-weight: 800;">👔 ${isAr ? 'مشرف (تكليف طارئ)' : 'Supervisor'}</span>`
-                    : `<span style="font-size: 10px; background: #eff3fa; color: #09296b; padding: 2px 6px; border-radius: 4px; ${isAr ? 'margin-right: 6px;' : 'margin-left: 6px;'} font-weight: 800;">${inst.shiftCode}</span>`;
+                let shiftCodeBadge = '';
+                if (inst.isAssistant) {
+                    shiftCodeBadge = `<span style="font-size: 10px; background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; padding: 2px 6px; border-radius: 4px; ${isAr ? 'margin-right: 6px;' : 'margin-left: 6px;'} font-weight: 800;">🤝 ${isAr ? 'مساعد مدرب (مرن)' : 'Assistant'}</span>`;
+                } else if (inst.isSupervisor) {
+                    shiftCodeBadge = `<span style="font-size: 10px; background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 2px 6px; border-radius: 4px; ${isAr ? 'margin-right: 6px;' : 'margin-left: 6px;'} font-weight: 800;">👔 ${isAr ? 'مشرف (مرن)' : 'Supervisor'}</span>`;
+                } else {
+                    shiftCodeBadge = `<span style="font-size: 10px; background: #eff3fa; color: #09296b; padding: 2px 6px; border-radius: 4px; ${isAr ? 'margin-right: 6px;' : 'margin-left: 6px;'} font-weight: 800;">${inst.shiftCode}</span>`;
+                }
 
                 html += `
                     <tr>
@@ -952,7 +1018,7 @@ class SDIReportApp {
     /* ================= استخراج المدربين المسجلين خلال الفترة المحددة ================= */
     getFilteredInstructors() {
         if (this.activePeriodFilter === 'morning') {
-            return this.instructors.filter(i => i.shift === 'S1' || i.category === 'MC');
+            return this.instructors.filter(i => i.shift === 'S1' || i.shift === 'FIX' || (i.category === 'MC' && i.shift !== 'S2'));
         } else if (this.activePeriodFilter === 'evening') {
             return this.instructors.filter(i => i.shift === 'S2');
         }
@@ -961,8 +1027,8 @@ class SDIReportApp {
 
     /* ================= استخراج الحصص التابعة للوردية المسجلة للمدرب فقط (منع ظهور الـ 20 حصة) ================= */
     getInstructorShiftSlots(inst) {
-        if (this.isSupervisor(inst)) {
-            // المشرف / السوبرفايزر: ليس لديه جدول تدريب رسمي 20 حصة، بل يتم استخراج الحصص المسندة إليه فقط بدون أي حصص خالية
+        if (this.isFlexibleRole(inst)) {
+            // مساعد المدرب والمشرف: ليس لديه جدول تدريب ثابت، بل يتم استخراج الحصص المسندة إليه فقط بدون أي حصص خالية
             return (inst.fullSchedule || []).filter(s => s.sat === 'occupied' || s.sun === 'occupied');
         }
 
@@ -971,9 +1037,17 @@ class SDIReportApp {
         const isFem = (inst.gender === 'female');
 
         if (inst.category === 'MC') {
-            min = 6;
-            max = 17;
-        } else if (inst.category === 'HT') {
+            if (inst.shift === 'S1') {
+                min = 1;
+                max = 13;
+            } else if (inst.shift === 'S2') {
+                min = 14;
+                max = 26;
+            } else {
+                min = inst.minSlot || 6;
+                max = inst.maxSlot || 17;
+            }
+        } else if (inst.category === 'HT' || inst.category === 'HB' || inst.category === 'LB') {
             if (inst.shift === 'S2') {
                 min = 13;
                 max = 24;
@@ -982,9 +1056,10 @@ class SDIReportApp {
                 max = 12;
             }
         } else {
-            // المركبة الخفيفة (LMFM أو LMFA)
+            // المركبات الخفيفة (عادي وأوتوماتيك):
+            // السيدات: 9 حصص يومياً (1-9 صباحاً، 11-19 مساءً | سعة 18)
+            // الذكور: 10 حصص يومياً (1-10 صباحاً، 11-20 مساءً | سعة 20)
             if (isFem) {
-                // قاعدة المدربات السيدات المعتمدة: 9 حصص يومياً خلال كل وردية (السعة الكلية 18 حصة)
                 if (inst.shift === 'S2') {
                     min = 11;
                     max = 19;
@@ -993,7 +1068,6 @@ class SDIReportApp {
                     max = 9;
                 }
             } else {
-                // المدربون الذكور: 10 حصص يومياً (السعة الكلية 20 حصة)
                 if (inst.shift === 'S2') {
                     min = 11;
                     max = 20;
@@ -1110,14 +1184,9 @@ class SDIReportApp {
 
                 const renderSlotCell = (dayGroup) => {
                     const isOcc = slotItem[dayGroup] === 'occupied';
-                    const details = (dayGroup === 'sat') ? (slotItem.satDetails || {}) : (slotItem.sunDetails || {});
-                    const loc = details.location || 'R';
-                    const isDouble = !!details.isDouble;
-                    const isDoublePart2 = !!details.isDoublePart2;
-                    const isFixed = !!details.isFixed;
+                    let details = (dayGroup === 'sat') ? (slotItem.satDetails || {}) : (slotItem.sunDetails || {});
 
-                    // فحص وجود الحصة في خطة اليوم إذا كانت خالية بالإتاحة
-                    // مهم جداً: التأكد من مطابقة يوم الخطة (السبت sat أو الأحد sun) مع عمود اليوم المعروض
+                    // فحص وجود الحصة في خطة اليوم
                     let planSession = null;
                     if (this.dayPlanData && Array.isArray(this.dayPlanData.instructors)) {
                         const pInst = this.dayPlanData.instructors.find(pi => String(pi.instructorId).trim() === String(instId).trim());
@@ -1129,6 +1198,57 @@ class SDIReportApp {
                             }
                         }
                     }
+
+                    // استعادة وإثراء بيانات الطالب تلقائياً إذا كانت الحصة مشغولة وتفاصيلها غير مكتملة
+                    if (isOcc && (!details.studentName && !details.studentId)) {
+                        if (planSession) {
+                            details = {
+                                studentName: planSession.studentName || '',
+                                studentId: planSession.studentId || '',
+                                course: planSession.course || effectiveCategory,
+                                location: planSession.location || 'R',
+                                isDouble: !!planSession.isDouble,
+                                classType: planSession.classType || 'R',
+                                isDoublePart1: !!planSession.isDoublePart1,
+                                isDoublePart2: !!planSession.isDoublePart2,
+                                hasDualStudents: !!planSession.hasDualStudents,
+                                student2Name: planSession.student2Name || '',
+                                student2Id: planSession.student2Id || '',
+                                student2Course: planSession.student2Course || '',
+                                isFixed: !!planSession.isFixed
+                            };
+                            if (dayGroup === 'sat') slotItem.satDetails = details;
+                            else slotItem.sunDetails = details;
+                        } else if (instObj && Array.isArray(instObj.students)) {
+                            const matchedSt = instObj.students.find(st => {
+                                if (st.slot !== slotItem.slot) return false;
+                                if (dayGroup === 'sat') return st.days === 'SAT-MON-WED' || st.days === 'SAT-THU' || st.days === 'DAILY' || st.days === 'SAT-FRI' || st.days === 'FRI-SAT';
+                                if (dayGroup === 'sun') return st.days === 'SUN-TUE-THU' || st.days === 'SAT-THU' || st.days === 'DAILY' || st.days === 'SAT-FRI' || st.days === 'FRI-SAT';
+                                return false;
+                            });
+                            if (matchedSt) {
+                                details = {
+                                    studentName: matchedSt.name || matchedSt.studentName || '',
+                                    studentId: matchedSt.id || matchedSt.studentId || '',
+                                    course: matchedSt.course || effectiveCategory,
+                                    location: matchedSt.location || (/Y/i.test(matchedSt.course || '') ? 'Y' : 'R'),
+                                    isDouble: !!matchedSt.isDouble,
+                                    classType: matchedSt.classType || 'R',
+                                    isDoublePart1: !!matchedSt.isDoublePart1,
+                                    isDoublePart2: !!matchedSt.isDoublePart2,
+                                    time: matchedSt.time || '',
+                                    isFixed: false
+                                };
+                                if (dayGroup === 'sat') slotItem.satDetails = details;
+                                else slotItem.sunDetails = details;
+                            }
+                        }
+                    }
+
+                    const loc = details.location || 'R';
+                    const isDouble = !!details.isDouble;
+                    const isDoublePart2 = !!details.isDoublePart2;
+                    const isFixed = !!details.isFixed;
 
                     if (!isOcc) {
                         if (planSession) {
@@ -1186,6 +1306,9 @@ class SDIReportApp {
                         onmouseenter="app.showSlotTooltip(event, this)" 
                         onmousemove="app.moveSlotTooltip(event)" 
                         onmouseleave="app.hideSlotTooltip()"
+                        data-inst-id="${instId}"
+                        data-slot="${slotItem.slot}"
+                        data-day="${dayGroup}"
                         data-student-name="${(details.studentName || '').replace(/"/g, '&quot;')}"
                         data-student-id="${(details.studentId || '').replace(/"/g, '&quot;')}"
                         data-student2-name="${(details.student2Name || '').replace(/"/g, '&quot;')}"
@@ -1223,14 +1346,22 @@ class SDIReportApp {
                     let studentChip = '';
                     if (details.hasDualStudents && details.student2Name && loc === 'Y') {
                         studentChip = `
-                            <div class="slot-student-mini" style="background: #f0fdf4; border-color: #86efac; color: #166534; font-size: 10.5px; line-height: 1.3;" title="${hoverIndicator.replace(/"/g, '&quot;')}">
+                            <div class="slot-student-mini" style="background: #f0fdf4; border-color: #86efac; color: #166534; font-size: 10.5px; line-height: 1.3;" 
+                                onmouseenter="app.showSlotTooltip(event, this.parentElement.querySelector('.slot-day-btn-interactive'))" 
+                                onmousemove="app.moveSlotTooltip(event)" 
+                                onmouseleave="app.hideSlotTooltip()"
+                                title="${hoverIndicator.replace(/"/g, '&quot;')}">
                                 <div>👤 1: ${details.studentName || '-'} <span style="font-size:9.5px; opacity:0.8; font-family:monospace;">(#${details.studentId || '-'})</span></div>
                                 <div style="font-weight: 700; color: #15803d;">👥 2: ${details.student2Name} <span style="font-size:9.5px; opacity:0.8; font-family:monospace;">(#${details.student2Id || '-'})</span></div>
                             </div>
                         `;
                     } else if (details.studentName || details.studentId) {
                         const sIdPart = details.studentId ? ` <span style="font-size:9.5px; opacity:0.8; font-family:monospace;">(#${details.studentId})</span>` : '';
-                        studentChip = `<div class="slot-student-mini" title="${hoverIndicator.replace(/"/g, '&quot;')}">👤 ${details.studentName || 'طالب'}${sIdPart}</div>`;
+                        studentChip = `<div class="slot-student-mini" 
+                            onmouseenter="app.showSlotTooltip(event, this.parentElement.querySelector('.slot-day-btn-interactive'))" 
+                            onmousemove="app.moveSlotTooltip(event)" 
+                            onmouseleave="app.hideSlotTooltip()"
+                            title="${hoverIndicator.replace(/"/g, '&quot;')}">👤 ${details.studentName || 'طالب'}${sIdPart}</div>`;
                     }
 
                     return `
@@ -1310,63 +1441,88 @@ class SDIReportApp {
 
             // خيارات الوردية الرسمية المعتمدة للمدرب
             let shiftOptionsHtml = '';
-            if (inst.category === 'MC') {
+            const isFlex = this.isFlexibleRole(inst);
+            const isSup = this.isSupervisor(inst);
+            const isAst = this.isAssistant(inst);
+
+            if (isFlex) {
                 shiftOptionsHtml = `
-                    <div style="font-size: 12px; background: #ecfdf5; color: #065f46; padding: 4px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #a7f3d0;">
-                        🏍️ ${isAr ? 'فترة ثابتة: 6 إلى 17 (مدة الحصة: 30 دقيقة)' : 'Fixed Shift: 6 to 17 (30 min slots)'}
+                    <div style="font-size: 12px; background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #fde68a;">
+                        ${isAst ? (isAr ? '🤝 مساعد مدرب (جدول مرن بدون حد حصص)' : '🤝 Assistant Trainer (Flexible)') : (isAr ? '👔 مشرف (جدول مرن بدون حد حصص)' : '👔 Supervisor (Flexible)')}
                     </div>
                 `;
-            } else if (inst.category === 'HT') {
+            } else if (inst.category === 'MC') {
                 shiftOptionsHtml = `
                     <select class="filter-select" style="font-size: 12px; padding: 4px 10px; font-weight: bold;" onchange="app.changeInstructorShift('${inst.id}', this.value)">
-                        <option value="S1" ${inst.shift === 'S1' ? 'selected' : ''}>${isAr ? 'الوردية المعتمدة: الفترة الأولى (1 إلى 12 - صباحي)' : 'Shift: Morning (1 to 12)'}</option>
-                        <option value="S2" ${inst.shift === 'S2' ? 'selected' : ''}>${isAr ? 'الوردية المعتمدة: الفترة الثانية (13 إلى 24 - مسائي)' : 'Shift: Evening (13 to 24)'}</option>
+                        <option value="FIX" ${inst.shift === 'FIX' ? 'selected' : ''}>${isAr ? '🏍️ فترة واحدة بالفرع (13 حصة: 6 إلى 17)' : '🏍️ Fixed Branch Shift (13 slots: 6 to 17)'}</option>
+                        <option value="S1" ${inst.shift === 'S1' ? 'selected' : ''}>${isAr ? '🌅 وردية أولى صباحية - المركز الرئيسي (13 حصة: 1 إلى 13)' : '🌅 Morning Shift - HQ (13 slots: 1 to 13)'}</option>
+                        <option value="S2" ${inst.shift === 'S2' ? 'selected' : ''}>${isAr ? '🌇 وردية ثانية مسائية - المركز الرئيسي (13 حصة: 14 إلى 26)' : '🌇 Evening Shift - HQ (13 slots: 14 to 26)'}</option>
+                    </select>
+                `;
+            } else if (inst.category === 'HT' || inst.category === 'HB' || inst.category === 'LB') {
+                const isHB = (inst.category === 'HB' || inst.category === 'LB');
+                const catNameAr = isHB ? 'باص ثقيل (HBFM)' : 'الشاحنة الثقيلة';
+                const catNameEn = isHB ? 'Heavy Bus' : 'Heavy Truck';
+                shiftOptionsHtml = `
+                    <select class="filter-select" style="font-size: 12px; padding: 4px 10px; font-weight: bold;" onchange="app.changeInstructorShift('${inst.id}', this.value)">
+                        <option value="S1" ${inst.shift === 'S1' ? 'selected' : ''}>${isAr ? `الوردية المعتمدة لـ ${catNameAr}: الفترة الأولى (12 حصة: 1 إلى 12 - صباحي)` : `Shift: Morning (12 slots: 1 to 12 - ${catNameEn})`}</option>
+                        <option value="S2" ${inst.shift === 'S2' ? 'selected' : ''}>${isAr ? `الوردية المعتمدة لـ ${catNameAr}: الفترة الثانية (12 حصة: 13 إلى 24 - مسائي)` : `Shift: Evening (12 slots: 13 to 24 - ${catNameEn})`}</option>
                     </select>
                 `;
             } else {
-                shiftOptionsHtml = `
-                    <select class="filter-select" style="font-size: 12px; padding: 4px 10px; font-weight: bold;" onchange="app.changeInstructorShift('${inst.id}', this.value)">
-                        <option value="S1" ${inst.shift === 'S1' ? 'selected' : ''}>${isAr ? 'الوردية المعتمدة: الفترة الأولى (1 إلى 10 - صباحي)' : 'Shift: Morning (1 to 10)'}</option>
-                        <option value="S2" ${inst.shift === 'S2' ? 'selected' : ''}>${isAr ? 'الوردية المعتمدة: الفترة الثانية (11 إلى 20 - مسائي)' : 'Shift: Evening (11 to 20)'}</option>
-                    </select>
-                `;
+                const isFem = (inst.gender === 'female');
+                if (isFem) {
+                    shiftOptionsHtml = `
+                        <select class="filter-select" style="font-size: 12px; padding: 4px 10px; font-weight: bold;" onchange="app.changeInstructorShift('${inst.id}', this.value)">
+                            <option value="S1" ${inst.shift === 'S1' ? 'selected' : ''}>${isAr ? 'الوردية المعتمدة (سيدات): الفترة الصباحية (9 حصص: 1 إلى 9)' : 'Female Shift: Morning (9 slots: 1 to 9)'}</option>
+                            <option value="S2" ${inst.shift === 'S2' ? 'selected' : ''}>${isAr ? 'الوردية المعتمدة (سيدات): الفترة المسائية (9 حصص: 11 إلى 19)' : 'Female Shift: Evening (9 slots: 11 to 19)'}</option>
+                        </select>
+                    `;
+                } else {
+                    shiftOptionsHtml = `
+                        <select class="filter-select" style="font-size: 12px; padding: 4px 10px; font-weight: bold;" onchange="app.changeInstructorShift('${inst.id}', this.value)">
+                            <option value="S1" ${inst.shift === 'S1' ? 'selected' : ''}>${isAr ? 'الوردية المعتمدة: الفترة الأولى (10 حصص: 1 إلى 10 - صباحي)' : 'Shift: Morning (10 slots: 1 to 10)'}</option>
+                            <option value="S2" ${inst.shift === 'S2' ? 'selected' : ''}>${isAr ? 'الوردية المعتمدة: الفترة الثانية (10 حصص: 11 إلى 20 - مسائي)' : 'Shift: Evening (10 slots: 11 to 20)'}</option>
+                        </select>
+                    `;
+                }
             }
 
-            // استخراج الحصص التابعة للفترة المسجلة للمدرب فقط (10 حصص للمركبة، 12 للشاحنة) لمنع ظهور الـ 20 حصة
+            // استخراج الحصص التابعة للفترة المسجلة للمدرب فقط (10 حصص للمركبة، 12 للشاحنة والباص، 13 للدراجة) لمنع ظهور الـ 20 حصة
             const visibleSlots = this.getInstructorShiftSlots(inst);
-            const isSup = this.isSupervisor(inst);
 
             // حساب المؤشرات للحصص المعروضة حالياً
             let curOcc = 0, curEmp = 0;
-            if (isSup) {
+            if (isFlex) {
                 visibleSlots.forEach(s => {
                     if (s.sat === 'occupied') curOcc++;
                     if (s.sun === 'occupied') curOcc++;
                 });
-                curEmp = 0; // ممنوع احتساب أي حصص خالية للمشرف (جدوله خالي من الحصص)
+                curEmp = 0; // ممنوع احتساب أي حصص خالية للمساعد أو المشرف (جدوله خالي من الحصص الفارغة)
             } else {
                 visibleSlots.forEach(s => {
                     if (s.sat === 'occupied') curOcc++; else curEmp++;
                     if (s.sun === 'occupied') curOcc++; else curEmp++;
                 });
             }
-            const curCap = isSup ? curOcc : (curOcc + curEmp);
+            const curCap = isFlex ? curOcc : (curOcc + curEmp);
             const curRate = curCap > 0 ? ((curOcc / curCap) * 100).toFixed(1) : "0.0";
 
             // تقسيم الحصص إلى عمودين متساويين في حال تجاوزت 5 حصص لتلائم الشاشة بالكامل بدون سكرول
             let tableLayoutHtml = '';
-            if (isSup && visibleSlots.length === 0) {
+            if (isFlex && visibleSlots.length === 0) {
+                const roleIcon = isAst ? '🤝' : '👔';
+                const roleTitle = isAst 
+                    ? (isAr ? 'مساعد المدرب ليس لديه جدول تدريبي ثابت (0 حصص مسجلة | 0 حصص خالية)' : 'Assistant Trainer has no fixed template (0 recorded | 0 empty)')
+                    : (isAr ? 'المشرف ليس لديه جدول تدريبي ثابت (0 حصص مسجلة | 0 حصص خالية)' : 'Supervisor has no fixed template (0 recorded | 0 empty)');
+                const roleDesc = isAr
+                    ? 'وفق اللائحة المعتمدة، جدول مساعد المدرب والمشرف مرن وخالي من خانات الحصص الفارغة، ولا يُسجل له عدد محدد مسبقاً من الحصص، بل الحصص التي يقوم بتدريبها هي العدد الذي يُسجل له فقط (عند تدريب حصتين يُسجل له 2، وعند تدريب ثلاث يُسجل 3 ولا تُسجل له حصص فارغة).'
+                    : 'According to regulations, assistants and supervisors have a flexible schedule. Only actually trained sessions are recorded, with zero empty slots.';
                 tableLayoutHtml = `
                     <div style="background: #fffbeb; border: 1.5px dashed #fde68a; border-radius: 10px; padding: 40px 20px; text-align: center; margin-top: 10px;">
-                        <div style="font-size: 38px; margin-bottom: 10px;">👔</div>
-                        <h4 style="font-size: 15px; font-weight: 800; color: #92400e; margin-bottom: 6px;">
-                            ${isAr ? 'المشرف ليس لديه جدول تدريبي ثابت (0 حصص مسجلة | 0 حصص خالية)' : 'Supervisor has no fixed schedule template (0 recorded sessions | 0 empty slots)'}
-                        </h4>
-                        <p style="font-size: 13px; color: #b45309; max-width: 600px; margin: 0 auto 16px auto; line-height: 1.6;">
-                            ${isAr 
-                                ? 'وفق اللائحة المعتمدة، جدول المشرف خالي من خانات الحصص الفارغة، ولا تُحسب له إلا الحصص المسجلة فعلياً بالنظام. عند تسجيل أو إسناد أي حصة للمشرف ستظهر له فقط وتُحسب سعته بعدد حصصه المسجلة دون أي حصص خالية.' 
-                                : 'According to regulations, the supervisor has no empty slots template. Sessions appear only when actually booked in the system, with zero empty slots.'}
-                        </p>
+                        <div style="font-size: 38px; margin-bottom: 10px;">${roleIcon}</div>
+                        <h4 style="font-size: 15px; font-weight: 800; color: #92400e; margin-bottom: 6px;">${roleTitle}</h4>
+                        <p style="font-size: 13px; color: #b45309; max-width: 600px; margin: 0 auto 16px auto; line-height: 1.6;">${roleDesc}</p>
                     </div>
                 `;
             } else if (visibleSlots.length > 5) {
@@ -1411,7 +1567,7 @@ class SDIReportApp {
                                 <button class="btn btn-outline btn-sm" onclick="app.openInstructorModal('edit', '${inst.id}')" title="تعديل بيانات وتكويد هذا المدرب">
                                     ${this.t('btnEditCoding')}
                                 </button>
-                                ${!isSup ? `
+                                ${!isFlex ? `
                                 <button class="btn btn-outline btn-sm" onclick="app.setShiftAllSlots('${inst.id}', 'empty')" title="تفريغ كافة حصص هذا النطاق">
                                     ${this.t('btnClearRange')}
                                 </button>
@@ -1534,6 +1690,7 @@ class SDIReportApp {
                                 <select id="inline-inst-category" class="form-control" onchange="app.updateInlinePreview()">
                                     <option value="LMFM">🚗 ${isAr ? 'مركبة خفيفة - جير عادي (LMFM - 40 دقيقة)' : 'Light Motor - Manual (LMFM - 40 mins)'}</option>
                                     <option value="LMFA">🚙 ${isAr ? 'مركبة خفيفة - أوتوماتيك (LMFA - 40 دقيقة)' : 'Light Motor - Automatic (LMFA - 40 mins)'}</option>
+                                    <option value="HB">🚌 ${isAr ? 'باص ثقيل (HBFM - 30 دقيقة)' : 'Heavy Bus (HBFM - 30 mins)'}</option>
                                     <option value="HT">🚛 ${isAr ? 'شاحنة ثقيلة (HTFM - 30 دقيقة)' : 'Heavy Truck (HTFM - 30 mins)'}</option>
                                     <option value="MC">🏍️ ${isAr ? 'دراجة نارية (MC - 30 دقيقة)' : 'Motorcycle (MC - 30 mins)'}</option>
                                 </select>
@@ -1542,9 +1699,9 @@ class SDIReportApp {
                             <div class="form-group">
                                 <label for="inline-inst-shift">${this.t('lblInstShift')} <span style="color:#ef4444;">*</span></label>
                                 <select id="inline-inst-shift" class="form-control" onchange="app.updateInlinePreview()">
-                                    <option value="S1">🌅 ${isAr ? 'الفترة الصباحية (الأولى) - حصص 1 إلى 10' : 'Morning Shift (1 to 10)'}</option>
-                                    <option value="S2">🌇 ${isAr ? 'الفترة المسائية (الثانية) - حصص 11 إلى 20' : 'Evening Shift (11 to 20)'}</option>
-                                    <option value="FIX">⏱️ ${isAr ? 'فترة ثابتة للدراجة النارية (6 إلى 17)' : 'Fixed Shift Motorcycle (6 to 17)'}</option>
+                                    <option value="S1">🌅 ${isAr ? 'الفترة الصباحية (الأولى) - خفيف (1-10 ذكور / 1-9 إناث) أو ثقيل/باص (1-12) أو دراجة إدارة (1-13)' : 'Morning Shift (1st)'}</option>
+                                    <option value="S2">🌇 ${isAr ? 'الفترة المسائية (الثانية) - خفيف (11-20 ذكور / 11-19 إناث) أو ثقيل/باص (13-24) أو دراجة إدارة (14-26)' : 'Evening Shift (2nd)'}</option>
+                                    <option value="FIX">⏱️ ${isAr ? 'فترة الدراجة النارية بالفرع: 12 حصة (6 إلى 17)' : 'Motorcycle Branch Fixed: 12 slots (6 to 17)'}</option>
                                 </select>
                             </div>
                         </div>
@@ -1555,7 +1712,7 @@ class SDIReportApp {
                                 <span style="font-size: 12.5px; font-weight: 800; color: #166534;">${this.t('lblShiftCodePreview')}</span>
                                 <span id="inline-preview-code" class="smart-code-badge">LMFM-S1</span>
                                 <span id="inline-preview-desc" style="font-size: 12px; color: #15803d; font-weight: 600;">
-                                    ${isAr ? 'الحصص المعتمدة: 1 إلى 10 فقط (تمت إزالة الحصص 11 إلى 20)' : 'Approved slots: 1 to 10 (slots 11-20 eliminated)'}
+                                    ${isAr ? 'الحصص المعتمدة: 10 حصص (1 إلى 10) فقط (السعة الكلية 20 حصة)' : 'Approved slots: 10 slots (1 to 10) (20 capacity)'}
                                 </span>
                             </div>
                             <div style="display: flex; gap: 8px;">
@@ -1607,30 +1764,62 @@ class SDIReportApp {
         const descEl = document.getElementById('inline-preview-desc');
         if (!catEl || !shiftEl || !codeEl || !descEl) return;
 
+        const isAr = this.lang === 'ar';
         const cat = catEl.value;
         let sh = shiftEl.value;
 
         if (cat === 'MC') {
-            shiftEl.value = 'FIX';
-            codeEl.innerText = 'MC-FIX';
-            descEl.innerHTML = 'الفترة الثابتة: الحصص <strong>6 إلى 17</strong> فقط (12 حصة | 30 دقيقة)';
-        } else if (cat === 'HT') {
+            if (sh !== 'S1' && sh !== 'S2' && sh !== 'FIX') {
+                shiftEl.value = 'FIX';
+                sh = 'FIX';
+            }
+            if (sh === 'S1') {
+                codeEl.innerText = 'MC-S1';
+                descEl.innerHTML = isAr 
+                    ? '🏍️ <strong>دراجة نارية (صباحي إدارة):</strong> 13 حصة (الحصص <strong>1 إلى 13</strong> | مدة 30 دقيقة | سعة 26)'
+                    : 'Motorcycle HQ Morning: 13 slots (1 to 13 | 30 mins | 26 cap)';
+            } else if (sh === 'S2') {
+                codeEl.innerText = 'MC-S2';
+                descEl.innerHTML = isAr 
+                    ? '🏍️ <strong>دراجة نارية (مسائي إدارة):</strong> 13 حصة (الحصص <strong>14 إلى 26</strong> | مدة 30 دقيقة | سعة 26)'
+                    : 'Motorcycle HQ Evening: 13 slots (14 to 26 | 30 mins | 26 cap)';
+            } else {
+                codeEl.innerText = 'MC-FIX';
+                descEl.innerHTML = isAr 
+                    ? '🏍️ <strong>دراجة نارية (فترة الفرع):</strong> 12 حصة (الحصص <strong>6 إلى 17</strong> | مدة 30 دقيقة | سعة 24)'
+                    : 'Motorcycle Branch Fixed: 12 slots (6 to 17 | 30 mins | 24 cap)';
+            }
+        } else if (cat === 'HT' || cat === 'HB' || cat === 'LB') {
+            const isBus = (cat === 'HB' || cat === 'LB');
+            const prefix = isBus ? 'HBFM' : 'HTFM';
+            const catName = isBus ? (isAr ? 'باص ثقيل' : 'Heavy Bus') : (isAr ? 'شاحنة ثقيلة' : 'Heavy Truck');
             if (sh === 'FIX') { shiftEl.value = 'S1'; sh = 'S1'; }
             if (sh === 'S1') {
-                codeEl.innerText = 'HTFM-S1';
-                descEl.innerHTML = 'الفترة الصباحية: الحصص <strong>1 إلى 12</strong> فقط (تمت إزالة 13 إلى 24)';
+                codeEl.innerText = `${prefix}-S1`;
+                descEl.innerHTML = isAr 
+                    ? `🌅 <strong>${catName} (صباحي):</strong> 12 حصة (الحصص <strong>1 إلى 12</strong> | مدة الحصة 30 دقيقة | سعة 24)`
+                    : `Morning Shift: 12 slots (Slots 1 to 12 | 30 mins | 24 cap)`;
             } else {
-                codeEl.innerText = 'HTFM-S2';
-                descEl.innerHTML = 'الفترة المسائية: الحصص <strong>13 إلى 24</strong> فقط (تمت إزالة 1 إلى 12)';
+                codeEl.innerText = `${prefix}-S2`;
+                descEl.innerHTML = isAr 
+                    ? `🌇 <strong>${catName} (مسائي):</strong> 12 حصة (الحصص <strong>13 إلى 24</strong> | مدة الحصة 30 دقيقة | سعة 24)`
+                    : `Evening Shift: 12 slots (Slots 13 to 24 | 30 mins | 24 cap)`;
             }
         } else {
             if (sh === 'FIX') { shiftEl.value = 'S1'; sh = 'S1'; }
+            const masterEntry = (typeof SDIMasterRoster !== 'undefined') ? SDIMasterRoster.lookup(document.getElementById('inline-inst-id')?.value, document.getElementById('inline-inst-name')?.value) : null;
+            const isFem = masterEntry ? masterEntry.gender === 'female' : false;
+            const suffix = isFem ? '-F' : '';
             if (sh === 'S1') {
-                codeEl.innerText = `${cat}-S1`;
-                descEl.innerHTML = 'الفترة الصباحية: الحصص <strong>1 إلى 10</strong> فقط (تمت إزالة 11 إلى 20)';
+                codeEl.innerText = `${cat}-S1${suffix}`;
+                descEl.innerHTML = isFem
+                    ? (isAr ? '👩 <strong>سيدات (صباحي):</strong> 9 حصص (الحصص <strong>1 إلى 9</strong> | مدة 40 دقيقة | سعة 18)' : 'Female Morning: 9 slots (1 to 9 | 18 cap)')
+                    : (isAr ? '🌅 <strong>مركبة خفيفة (صباحي):</strong> 10 حصص (الحصص <strong>1 إلى 10</strong> | مدة 40 دقيقة | سعة 20)' : 'Morning Shift: 10 slots (1 to 10 | 20 cap)');
             } else {
-                codeEl.innerText = `${cat}-S2`;
-                descEl.innerHTML = 'الفترة المسائية: الحصص <strong>11 إلى 20</strong> فقط (تمت إزالة 1 إلى 10)';
+                codeEl.innerText = `${cat}-S2${suffix}`;
+                descEl.innerHTML = isFem
+                    ? (isAr ? '👩 <strong>سيدات (مسائي):</strong> 9 حصص (الحصص <strong>11 إلى 19</strong> | مدة 40 دقيقة | سعة 18)' : 'Female Evening: 9 slots (11 to 19 | 18 cap)')
+                    : (isAr ? '🌇 <strong>مركبة خفيفة (مسائي):</strong> 10 حصص (الحصص <strong>11 إلى 20</strong> | مدة 40 دقيقة | سعة 20)' : 'Evening Shift: 10 slots (11 to 20 | 20 cap)');
             }
         }
     }
@@ -1647,45 +1836,85 @@ class SDIReportApp {
             return;
         }
 
+        const isAr = this.lang === 'ar';
         const shortName = name.split(' ').slice(0, 2).join(' ');
 
+        const masterEntry = (typeof SDIMasterRoster !== 'undefined') ? SDIMasterRoster.lookup(id, name) : null;
+        const isFem = masterEntry ? masterEntry.gender === 'female' : false;
         let shiftCode = '';
         let shiftName = '';
         let minSlot = 1;
         let maxSlot = 10;
         let vehicleType = '';
+        let capacity = 20;
 
         if (category === 'MC') {
-            shiftCode = 'MC-FIX';
-            shiftName = 'فترة ثابتة (6 - 17)';
-            minSlot = 6;
-            maxSlot = 17;
-            vehicleType = 'دراجة نارية (MC)';
-        } else if (category === 'HT') {
-            vehicleType = 'شاحنة ثقيلة (HTFM)';
+            vehicleType = isAr ? 'دراجة نارية (MC)' : 'Motorcycle (MC)';
+            if (shift === 'S1') {
+                shiftCode = 'MC-S1';
+                shiftName = isAr ? 'فترة صباحية - إدارة (1 - 13)' : 'HQ Morning (1 - 13)';
+                minSlot = 1;
+                maxSlot = 13;
+                capacity = 26;
+            } else if (shift === 'S2') {
+                shiftCode = 'MC-S2';
+                shiftName = isAr ? 'فترة مسائية - إدارة (14 - 26)' : 'HQ Evening (14 - 26)';
+                minSlot = 14;
+                maxSlot = 26;
+                capacity = 26;
+            } else {
+                shift = 'FIX';
+                shiftCode = 'MC-FIX';
+                shiftName = isAr ? 'فترة الفرع (6 - 17)' : 'Branch Shift (6 - 17)';
+                minSlot = 6;
+                maxSlot = 17;
+                capacity = 24;
+            }
+        } else if (category === 'HT' || category === 'HB' || category === 'LB') {
+            const isBus = (category === 'HB' || category === 'LB');
+            const prefix = isBus ? 'HBFM' : 'HTFM';
+            vehicleType = isBus ? (isAr ? 'باص ثقيل (HBFM)' : 'Heavy Bus (HBFM)') : (isAr ? 'شاحنة ثقيلة (HTFM)' : 'Heavy Truck (HTFM)');
+            capacity = 24;
             if (shift === 'S2') {
-                shiftCode = 'HTFM-S2';
-                shiftName = 'الفترة الثانية (13 - 24)';
+                shiftCode = `${prefix}-S2`;
+                shiftName = isAr ? 'الفترة الثانية (13 - 24) [12 حصة]' : 'Evening Shift (13 - 24)';
                 minSlot = 13;
                 maxSlot = 24;
             } else {
-                shiftCode = 'HTFM-S1';
-                shiftName = 'الفترة الأولى (1 - 12)';
+                shiftCode = `${prefix}-S1`;
+                shiftName = isAr ? 'الفترة الأولى (1 - 12) [12 حصة]' : 'Morning Shift (1 - 12)';
                 minSlot = 1;
                 maxSlot = 12;
             }
         } else {
-            vehicleType = category === 'LMFM' ? 'خفيفة عادي (LMFM)' : 'خفيفة أوتوماتيك (LMFA)';
-            if (shift === 'S2') {
-                shiftCode = `${category}-S2`;
-                shiftName = 'الفترة الثانية (11 - 20)';
-                minSlot = 11;
-                maxSlot = 20;
+            vehicleType = category === 'LMFM' ? (isAr ? 'مركبة خفيفة عادي (LMFM)' : 'Light Motor - Manual') : (isAr ? 'مركبة خفيفة أوتوماتيك (LMFA)' : 'Light Motor - Auto');
+            const suffix = isFem ? '-F' : '';
+            if (isFem) {
+                capacity = 18;
+                if (shift === 'S2') {
+                    shiftCode = `${category}-S2${suffix}`;
+                    shiftName = isAr ? 'الفترة الثانية سيدات (11 - 19) [9 حصص]' : 'Female Evening (11 - 19)';
+                    minSlot = 11;
+                    maxSlot = 19;
+                } else {
+                    shiftCode = `${category}-S1${suffix}`;
+                    shiftName = isAr ? 'الفترة الأولى سيدات (1 - 9) [9 حصص]' : 'Female Morning (1 - 9)';
+                    minSlot = 1;
+                    maxSlot = 9;
+                }
             } else {
-                shiftCode = `${category}-S1`;
-                shiftName = 'الفترة الأولى (1 - 10)';
-                minSlot = 1;
-                maxSlot = 10;
+                capacity = 20;
+                if (shift === 'S2') {
+                    shiftCode = `${category}-S2${suffix}`;
+                    shiftName = isAr ? 'الفترة الثانية (11 - 20) [10 حصص]' : 'Evening Shift (11 - 20)';
+                    minSlot = 11;
+                    maxSlot = 20;
+                } else {
+                    shiftCode = `${category}-S1${suffix}`;
+                    shiftName = isAr ? 'الفترة الأولى (1 - 10) [10 حصص]' : 'Morning Shift (1 - 10)';
+                    minSlot = 1;
+                    maxSlot = 10;
+                }
             }
         }
 
@@ -1707,7 +1936,7 @@ class SDIReportApp {
             this.selectedInstId = id;
             this.showToast(`✅ تم تحديث وتكويد المدرب (${shortName}) وإزالة الحصص خارج ${shiftName}.`);
         } else {
-            const maxSlotsCount = category === 'HT' ? 24 : 20;
+            const maxSlotsCount = (category === 'HT' || category === 'LB') ? 24 : 20;
             const fullSchedule = [];
             for (let s = 1; s <= maxSlotsCount; s++) {
                 fullSchedule.push({ slot: s, sat: 'empty', sun: 'empty' });
@@ -1821,11 +2050,12 @@ class SDIReportApp {
             shortNameEl.value = inst.shortName || '';
             idEl.value = inst.id;
             
-            const isSup = !!(inst.isSupervisor || inst.role === 'supervisor' || inst.shift === 'SUP');
-            if (roleEl) roleEl.value = isSup ? 'supervisor' : 'instructor';
+            const isSup = this.isSupervisor(inst);
+            const isAst = this.isAssistant(inst);
+            if (roleEl) roleEl.value = isAst ? 'assistant' : (isSup ? 'supervisor' : 'instructor');
             if (genderEl) genderEl.value = (inst.gender === 'female') ? 'female' : 'male';
             if (catEl) catEl.value = inst.category || 'LMFM';
-            if (shiftEl) shiftEl.value = isSup ? 'SUP' : (inst.shift || 'S1');
+            if (shiftEl) shiftEl.value = isAst ? 'AST' : (isSup ? 'SUP' : (inst.shift || 'S1'));
 
             if (delBtn) delBtn.style.display = (this.instructors.length > 1) ? 'inline-block' : 'none';
         } else {
@@ -1867,63 +2097,87 @@ class SDIReportApp {
         const cat = categoryEl.value;
         let sh = shiftEl.value;
 
+        if (role === 'assistant' || sh === 'AST') {
+            shiftEl.value = 'AST';
+            badgeEl.innerText = `AST-${cat}`;
+            descEl.innerHTML = isAr 
+                ? '🤝 <strong>مساعد مدرب:</strong> ليس لديه جدول تدريبي ثابت ولا يُسجل له عدد محدد من الحصص، بل الحصص التي يقوم بتدريبها هي العدد الذي يُسجل له فقط (الحصص المسجلة فقط وبدون أي حصص خالية).'
+                : '🤝 <strong>Assistant Trainer:</strong> Flexible schedule without fixed slot cap. Only actually trained sessions are recorded, with zero empty slots.';
+            return;
+        }
+
         if (role === 'supervisor' || sh === 'SUP') {
             shiftEl.value = 'SUP';
             badgeEl.innerText = `SUP-${cat}`;
             descEl.innerHTML = isAr 
-                ? '👔 <strong>مشرف / سوبرفايزر:</strong> ليس لديه جدول تدريبي ثابت (جدوله خالي من خانات الحصص). لا تُحسب له إلا الحصص المسجلة بالنظام فقط، وتكون سعته مساوية لعدد الحصص المسجلة (1 حصة -> 1، 2 حصة -> 2، 0 حصة -> 0) وبدون أي حصص خالية.'
-                : '👔 <strong>Supervisor:</strong> No fixed schedule template. Schedule consists only of recorded sessions in system (Capacity = recorded sessions, 0 empty slots).';
+                ? '👔 <strong>مشرف / سوبرفايزر:</strong> ليس لديه جدول تدريبي ثابت (جدوله مرن). لا تُحسب له إلا الحصص المسجلة بالنظام فقط، وتكون سعته مساوية لعدد الحصص المسجلة وبدون أي حصص خالية.'
+                : '👔 <strong>Supervisor:</strong> Flexible schedule without fixed template. Only actually recorded sessions count, with zero empty slots.';
             return;
         }
 
         if (cat === 'MC') {
-            shiftEl.value = 'FIX';
-            sh = 'FIX';
-            badgeEl.innerText = 'MC-FIX';
-            descEl.innerHTML = isAr 
-                ? '🏍️ <strong>دراجة نارية (فترة ثابتة):</strong> الحصص <strong>6 إلى 17</strong> (12 حصة يومياً | السعة الكلية 24 حصة)'
-                : '🏍️ <strong>Motorcycle (Fixed Shift):</strong> Slots <strong>6 to 17</strong> (12 slots daily | 24 capacity)';
-        } else if (cat === 'HT') {
-            if (sh === 'FIX' || sh === 'SUP') { shiftEl.value = 'S1'; sh = 'S1'; }
             if (sh === 'S1') {
-                badgeEl.innerText = 'HTFM-S1';
+                badgeEl.innerText = 'MC-S1';
                 descEl.innerHTML = isAr 
-                    ? '🚛 <strong>شاحنة ثقيلة (صباحية):</strong> الحصص <strong>1 إلى 12</strong> (12 حصة يومياً | السعة الكلية 24 حصة)'
-                    : '🚛 <strong>Heavy Truck (Morning):</strong> Slots <strong>1 to 12</strong> (12 slots daily | 24 capacity)';
+                    ? '🌅 <strong>دراجة نارية (فترة صباحية):</strong> 13 حصة (الحصص <strong>1 إلى 13</strong> | مدة الحصة 30 دقيقة | السعة 26 حصة)'
+                    : 'Morning Shift: 13 slots (Slots <strong>1 to 13</strong> | 30 mins | 26 capacity)';
+            } else if (sh === 'S2') {
+                badgeEl.innerText = 'MC-S2';
+                descEl.innerHTML = isAr 
+                    ? '🌇 <strong>دراجة نارية (فترة مسائية):</strong> 13 حصة (الحصص <strong>14 إلى 26</strong> | مدة الحصة 30 دقيقة | السعة 26 حصة)'
+                    : 'Evening Shift: 13 slots (Slots <strong>14 to 26</strong> | 30 mins | 26 capacity)';
             } else {
-                badgeEl.innerText = 'HTFM-S2';
+                shiftEl.value = 'FIX';
+                badgeEl.innerText = 'MC-FIX';
                 descEl.innerHTML = isAr 
-                    ? '🚛 <strong>شاحنة ثقيلة (مسائية):</strong> الحصص <strong>13 إلى 24</strong> (12 حصة يومياً | السعة الكلية 24 حصة)'
-                    : '🚛 <strong>Heavy Truck (Evening):</strong> Slots <strong>13 to 24</strong> (12 slots daily | 24 capacity)';
+                    ? '🏍️ <strong>دراجة نارية (فترة ثابتة بالفرع):</strong> 13 حصة تبدأ من الحصة <strong>6 إلى 17</strong> (مدة الحصة 30 دقيقة | السعة 26 حصة)'
+                    : 'Motorcycle (Fixed Shift): 13 slots starting from <strong>6 to 17</strong> (30 min duration | 26 capacity)';
+            }
+        } else if (cat === 'HT' || cat === 'HB' || cat === 'LB') {
+            const isHB = (cat === 'HB' || cat === 'LB');
+            const prefix = isHB ? 'HBFM' : 'HTFM';
+            const catName = isHB ? (isAr ? 'باص ثقيل (HBFM)' : 'Heavy Bus') : (isAr ? 'شاحنة ثقيلة' : 'Heavy Truck');
+            if (sh === 'FIX' || sh === 'SUP' || sh === 'AST') { shiftEl.value = 'S1'; sh = 'S1'; }
+            if (sh === 'S1') {
+                badgeEl.innerText = `${prefix}-S1`;
+                descEl.innerHTML = isAr 
+                    ? `🌅 <strong>${catName} (صباحية):</strong> 12 حصة (الحصص <strong>1 إلى 12</strong> | مدة الحصة 30 دقيقة | السعة 24 حصة)`
+                    : `Morning Shift: 12 slots (Slots <strong>1 to 12</strong> | 30 min duration | 24 capacity)`;
+            } else {
+                badgeEl.innerText = `${prefix}-S2`;
+                descEl.innerHTML = isAr 
+                    ? `🌇 <strong>${catName} (مسائية):</strong> 12 حصة (الحصص <strong>13 إلى 24</strong> | مدة الحصة 30 دقيقة | السعة 24 حصة)`
+                    : `Evening Shift: 12 slots (Slots <strong>13 to 24</strong> | 30 min duration | 24 capacity)`;
             }
         } else {
-            // المركبة الخفيفة: التمييز بين المدربات السيدات (18 حصة - 9 يومياً) والمدربين الذكور (20 حصة - 10 يومياً)
-            if (sh === 'FIX' || sh === 'SUP') { shiftEl.value = 'S1'; sh = 'S1'; }
+            // المركبات الخفيفة
+            if (sh === 'FIX' || sh === 'SUP' || sh === 'AST') { shiftEl.value = 'S1'; sh = 'S1'; }
             const isFem = (gender === 'female');
-
             if (isFem) {
+                // جدول السيدات: 9 حصص يومياً (18 حصة معتمدة)
                 if (sh === 'S1') {
                     badgeEl.innerText = `${cat}-S1-F`;
                     descEl.innerHTML = isAr 
-                        ? '👩 <strong>مدربة سيدة (صباحية):</strong> 9 حصص يومياً (الحصص <strong>1 إلى 9</strong>) | <strong>السعة الكلية المعتمدة 18 حصة</strong>.'
-                        : '👩 <strong>Female Instructor (Morning):</strong> 9 slots daily (Slots <strong>1 to 9</strong>) | <strong>Approved Capacity 18 slots</strong>.';
+                        ? '🌅 <strong>مركبة خفيفة (سيدات - صباحية):</strong> 9 حصص معتمدة (الحصص <strong>1 إلى 9</strong> | مدة 40 دقيقة | السعة الكلية 18 حصة)'
+                        : 'Female Morning Shift: 9 slots (Slots <strong>1 to 9</strong> | 40 mins | Capacity 18 slots)';
                 } else {
                     badgeEl.innerText = `${cat}-S2-F`;
                     descEl.innerHTML = isAr 
-                        ? '👩 <strong>مدربة سيدة (مسائية):</strong> 9 حصص يومياً (الحصص <strong>11 إلى 19</strong>) | <strong>السعة الكلية المعتمدة 18 حصة</strong>.'
-                        : '👩 <strong>Female Instructor (Evening):</strong> 9 slots daily (Slots <strong>11 to 19</strong>) | <strong>Approved Capacity 18 slots</strong>.';
+                        ? '🌇 <strong>مركبة خفيفة (سيدات - مسائية):</strong> 9 حصص معتمدة (الحصص <strong>11 إلى 19</strong> | مدة 40 دقيقة | السعة الكلية 18 حصة)'
+                        : 'Female Evening Shift: 9 slots (Slots <strong>11 to 19</strong> | 40 mins | Capacity 18 slots)';
                 }
             } else {
+                // جدول الذكور: 10 حصص يومياً (20 حصة معتمدة)
                 if (sh === 'S1') {
                     badgeEl.innerText = `${cat}-S1`;
                     descEl.innerHTML = isAr 
-                        ? '👨 <strong>مدرب رسمي (صباحي):</strong> 10 حصص يومياً (الحصص <strong>1 إلى 10</strong>) | السعة الكلية المعتمدة 20 حصة.'
-                        : '👨 <strong>Male Instructor (Morning):</strong> 10 slots daily (Slots <strong>1 to 10</strong>) | Approved Capacity 20 slots.';
+                        ? '🌅 <strong>مركبة خفيفة (ذكور - صباحية):</strong> 10 حصص معتمدة (الحصص <strong>1 إلى 10</strong> | مدة 40 دقيقة | السعة الكلية 20 حصة)'
+                        : 'Morning Shift: 10 approved slots (Slots <strong>1 to 10</strong> | 40 mins | Approved Capacity 20 slots)';
                 } else {
                     badgeEl.innerText = `${cat}-S2`;
                     descEl.innerHTML = isAr 
-                        ? '👨 <strong>مدرب رسمي (مسائي):</strong> 10 حصص يومياً (الحصص <strong>11 إلى 20</strong>) | السعة الكلية المعتمدة 20 حصة.'
-                        : '👨 <strong>Male Instructor (Evening):</strong> 10 slots daily (Slots <strong>11 to 20</strong>) | Approved Capacity 20 slots.';
+                        ? '🌇 <strong>مركبة خفيفة (ذكور - مسائية):</strong> 10 حصص معتمدة (الحصص <strong>11 إلى 20</strong> | مدة 40 دقيقة | السعة الكلية 20 حصة)'
+                        : 'Evening Shift: 10 approved slots (Slots <strong>11 to 20</strong> | 40 mins | Approved Capacity 20 slots)';
                 }
             }
         }
@@ -1947,8 +2201,12 @@ class SDIReportApp {
 
         const isAr = this.lang === 'ar';
         const shortName = shortNameInput || name.split(' ').slice(0, 2).join(' ');
+        const isAssistant = (role === 'assistant' || shift === 'AST');
         const isSupervisor = (role === 'supervisor' || shift === 'SUP');
-        if (isSupervisor) shift = 'SUP';
+        const isFlexible = isAssistant || isSupervisor;
+
+        if (isAssistant) shift = 'AST';
+        else if (isSupervisor) shift = 'SUP';
 
         const isFem = (gender === 'female');
         let shiftCode = '';
@@ -1958,61 +2216,90 @@ class SDIReportApp {
         let vehicleType = '';
         let capacity = 20;
 
-        if (isSupervisor) {
-            shiftCode = `SUP-${category}`;
-            shiftName = isAr ? 'مشرف (Supervisor) - تكليف طارئ' : 'Supervisor - Ad-hoc Sessions';
+        if (isAssistant) {
+            shiftCode = `AST-${category}`;
+            shiftName = isAr ? 'مساعد مدرب (Assistant) - جدول مرن' : 'Assistant Trainer - Flexible';
             minSlot = 1;
-            maxSlot = category === 'HT' ? 24 : 20;
-            vehicleType = category === 'MC' ? 'دراجة نارية (MC)' : (category === 'HT' ? 'شاحنة ثقيلة (HTFM)' : (category === 'LMFM' ? 'خفيفة عادي (LMFM)' : 'خفيفة أوتوماتيك (LMFA)'));
+            maxSlot = (category === 'HT' || category === 'HB' || category === 'LB' || category === 'MC') ? (category === 'MC' ? 26 : 24) : 20;
+            vehicleType = category === 'MC' ? (isAr ? 'دراجة نارية (MC)' : 'Motorcycle (MC)') :
+                          (category === 'HT' ? (isAr ? 'شاحنة ثقيلة (HTFM)' : 'Heavy Truck (HTFM)') :
+                          ((category === 'HB' || category === 'LB') ? (isAr ? 'باص ثقيل (HBFM)' : 'Heavy Bus (HBFM)') :
+                          (category === 'LMFM' ? (isAr ? 'خفيفة عادي (LMFM)' : 'Light Motor - Manual') : (isAr ? 'خفيفة أوتوماتيك (LMFA)' : 'Light Motor - Auto'))));
+            capacity = 0;
+        } else if (isSupervisor) {
+            shiftCode = `SUP-${category}`;
+            shiftName = isAr ? 'مشرف (Supervisor) - جدول مرن' : 'Supervisor - Flexible';
+            minSlot = 1;
+            maxSlot = (category === 'HT' || category === 'HB' || category === 'LB' || category === 'MC') ? (category === 'MC' ? 26 : 24) : 20;
+            vehicleType = category === 'MC' ? (isAr ? 'دراجة نارية (MC)' : 'Motorcycle (MC)') :
+                          (category === 'HT' ? (isAr ? 'شاحنة ثقيلة (HTFM)' : 'Heavy Truck (HTFM)') :
+                          ((category === 'HB' || category === 'LB') ? (isAr ? 'باص ثقيل (HBFM)' : 'Heavy Bus (HBFM)') :
+                          (category === 'LMFM' ? (isAr ? 'خفيفة عادي (LMFM)' : 'Light Motor - Manual') : (isAr ? 'خفيفة أوتوماتيك (LMFA)' : 'Light Motor - Auto'))));
             capacity = 0;
         } else if (category === 'MC') {
-            shiftCode = 'MC-FIX';
-            shiftName = 'فترة ثابتة (6 - 17)';
-            minSlot = 6;
-            maxSlot = 17;
-            vehicleType = 'دراجة نارية (MC)';
-            capacity = 24;
-        } else if (category === 'HT') {
-            vehicleType = 'شاحنة ثقيلة (HTFM)';
+            capacity = 26;
+            vehicleType = isAr ? 'دراجة نارية (MC)' : 'Motorcycle (MC)';
+            if (shift === 'S1') {
+                shiftCode = 'MC-S1';
+                shiftName = isAr ? 'الفترة الأولى صباحي (1 - 13) [13 حصة]' : 'Morning Shift (1 - 13)';
+                minSlot = 1;
+                maxSlot = 13;
+            } else if (shift === 'S2') {
+                shiftCode = 'MC-S2';
+                shiftName = isAr ? 'الفترة الثانية مسائي (14 - 26) [13 حصة]' : 'Evening Shift (14 - 26)';
+                minSlot = 14;
+                maxSlot = 26;
+            } else {
+                shift = 'FIX';
+                shiftCode = 'MC-FIX';
+                shiftName = isAr ? 'فترة الدراجة النارية الثابتة (6 - 17)' : 'Motorcycle Fixed (6 - 17)';
+                minSlot = 6;
+                maxSlot = 17;
+            }
+        } else if (category === 'HT' || category === 'HB' || category === 'LB') {
+            const isHB = (category === 'HB' || category === 'LB');
+            const prefix = isHB ? 'HBFM' : 'HTFM';
+            vehicleType = isHB ? (isAr ? 'باص ثقيل (HBFM)' : 'Heavy Bus (HBFM)') : (isAr ? 'شاحنة ثقيلة (HTFM)' : 'Heavy Truck (HTFM)');
             capacity = 24;
             if (shift === 'S2') {
-                shiftCode = 'HTFM-S2';
-                shiftName = 'الفترة الثانية (13 - 24)';
+                shiftCode = `${prefix}-S2`;
+                shiftName = isAr ? 'الفترة الثانية (13 - 24) [12 حصة]' : 'Evening Shift (13 - 24)';
                 minSlot = 13;
                 maxSlot = 24;
             } else {
-                shiftCode = 'HTFM-S1';
-                shiftName = 'الفترة الأولى (1 - 12)';
+                shiftCode = `${prefix}-S1`;
+                shiftName = isAr ? 'الفترة الأولى (1 - 12) [12 حصة]' : 'Morning Shift (1 - 12)';
                 minSlot = 1;
                 maxSlot = 12;
             }
         } else {
-            vehicleType = category === 'LMFM' ? 'خفيفة عادي (LMFM)' : 'خفيفة أوتوماتيك (LMFA)';
+            // المركبات الخفيفة
+            vehicleType = category === 'LMFM' ? (isAr ? 'مركبة خفيفة عادي (LMFM)' : 'Light Motor - Manual') : (isAr ? 'مركبة خفيفة أوتوماتيك (LMFA)' : 'Light Motor - Auto');
             if (isFem) {
-                // قاعدة السيدات المعتمدة: 9 حصص يومياً | السعة الكلية 18 حصة
+                // جدول السيدات: 9 حصص يومياً (18 سعة)
                 capacity = 18;
                 if (shift === 'S2') {
                     shiftCode = `${category}-S2-F`;
-                    shiftName = 'الفترة الثانية (11 - 19) [سيدات 18 حصة]';
+                    shiftName = isAr ? 'الفترة المسائية سيدات (11 - 19) [9 حصص]' : 'Female Evening (11 - 19)';
                     minSlot = 11;
                     maxSlot = 19;
                 } else {
                     shiftCode = `${category}-S1-F`;
-                    shiftName = 'الفترة الأولى (1 - 9) [سيدات 18 حصة]';
+                    shiftName = isAr ? 'الفترة الصباحية سيدات (1 - 9) [9 حصص]' : 'Female Morning (1 - 9)';
                     minSlot = 1;
                     maxSlot = 9;
                 }
             } else {
-                // قاعدة المدربين الذكور: 10 حصص يومياً | السعة الكلية 20 حصة
+                // جدول الذكور: 10 حصص يومياً (20 سعة)
                 capacity = 20;
                 if (shift === 'S2') {
                     shiftCode = `${category}-S2`;
-                    shiftName = 'الفترة الثانية (11 - 20) [20 حصة]';
+                    shiftName = isAr ? 'الفترة الثانية (11 - 20) [10 حصص]' : 'Evening Shift (11 - 20)';
                     minSlot = 11;
                     maxSlot = 20;
                 } else {
                     shiftCode = `${category}-S1`;
-                    shiftName = 'الفترة الأولى (1 - 10) [20 حصة]';
+                    shiftName = isAr ? 'الفترة الأولى (1 - 10) [10 حصص]' : 'Morning Shift (1 - 10)';
                     minSlot = 1;
                     maxSlot = 10;
                 }
@@ -2041,9 +2328,10 @@ class SDIReportApp {
             inst.minSlot = minSlot;
             inst.maxSlot = maxSlot;
             inst.isSupervisor = isSupervisor;
+            inst.isAssistant = isAssistant;
 
-            if (isSupervisor) {
-                // قاعدة المشرف: ليس لديه جدول تدريب ثابت (جدوله خالي من خانات الحصص الفارغة)
+            if (isFlexible) {
+                // قاعدة المساعد والمشرف: ليس لديه جدول تدريب ثابت (جدوله مرن وخالي من خانات الحصص الفارغة)
                 // لا تحسب له إلا الحصص المسجلة بالنظام فقط، وتطهير كافة الحصص الفارغة
                 if (Array.isArray(inst.fullSchedule)) {
                     inst.fullSchedule = inst.fullSchedule.filter(s => s && (s.sat === 'occupied' || s.sun === 'occupied'));
@@ -2071,7 +2359,7 @@ class SDIReportApp {
                 }
             } else {
                 inst.capacity = capacity;
-                const maxNeededSlot = category === 'HT' ? 24 : 20;
+                const maxNeededSlot = (category === 'HT' || category === 'LB') ? 24 : 20;
                 if (!inst.fullSchedule || inst.fullSchedule.length < maxNeededSlot) {
                     inst.fullSchedule = [];
                     for (let s = 1; s <= maxNeededSlot; s++) {
@@ -2084,7 +2372,8 @@ class SDIReportApp {
             }
 
             this.selectedInstId = id;
-            this.showToast(`✅ تم تحديث بيانات وتكويد ${isSupervisor ? 'المشرف' : (isFem ? 'المدربة' : 'المدرب')} (${shortName}) بنجاح.`);
+            const roleLabel = isAssistant ? (isAr ? 'مساعد المدرب' : 'Assistant Trainer') : (isSupervisor ? (isAr ? 'المشرف' : 'Supervisor') : (isFem ? (isAr ? 'المدربة' : 'Instructor') : (isAr ? 'المدرب' : 'Instructor')));
+            this.showToast(`✅ تم تحديث بيانات وتكويد ${roleLabel} (${shortName}) بنجاح.`);
 
         } else {
             if (this.instructors.some(i => i.id === id)) {
@@ -2092,16 +2381,16 @@ class SDIReportApp {
                 return;
             }
 
-            const maxSlotsCount = category === 'HT' ? 24 : 20;
+            const maxSlotsCount = (category === 'HT' || category === 'LB') ? 24 : 20;
             const fullSchedule = [];
-            if (!isSupervisor) {
+            if (!isFlexible) {
                 for (let s = 1; s <= maxSlotsCount; s++) {
                     fullSchedule.push({ slot: s, sat: 'empty', sun: 'empty' });
                 }
             }
 
             let slotsRows = [];
-            if (!isSupervisor && typeof SDIPdfParser !== 'undefined') {
+            if (!isFlexible && typeof SDIPdfParser !== 'undefined') {
                 slotsRows = SDIPdfParser.generateEmptySlotsRows(fullSchedule, category, shift, gender);
             }
 
@@ -2117,20 +2406,22 @@ class SDIReportApp {
                 shiftCode,
                 shiftName,
                 isSupervisor,
-                capacity: isSupervisor ? 0 : capacity,
+                isAssistant,
+                capacity: isFlexible ? 0 : capacity,
                 occupied: 0,
-                empty: isSupervisor ? 0 : capacity,
+                empty: isFlexible ? 0 : capacity,
                 rate: "0.0",
                 minSlot,
                 maxSlot,
                 note: '',
-                slotsRows: isSupervisor ? [] : slotsRows,
+                slotsRows: isFlexible ? [] : slotsRows,
                 fullSchedule
             };
 
             this.instructors.push(newInst);
             this.selectedInstId = id;
-            this.showToast(`✅ تم تسجيل وتكويد ${isSupervisor ? 'المشرف' : (isFem ? 'المدربة' : 'المدرب')} الجديد (${shortName} - ${shiftCode}) بنجاح.`);
+            const roleLabel = isAssistant ? (isAr ? 'مساعد المدرب' : 'Assistant Trainer') : (isSupervisor ? (isAr ? 'المشرف' : 'Supervisor') : (isFem ? (isAr ? 'المدربة' : 'Instructor') : (isAr ? 'المدرب' : 'Instructor')));
+            this.showToast(`✅ تم تسجيل وتكويد ${roleLabel} الجديد (${shortName} - ${shiftCode}) بنجاح.`);
         }
 
         // مزامنة فورية مع سجل الملاك التدريبي المعتمد SDIMasterRoster
@@ -2227,43 +2518,67 @@ class SDIReportApp {
         if (inst.category === 'LMFA' || inst.category === 'LMFM') {
             if (isFem) {
                 inst.capacity = 18;
-                if (newShift === 'S1') {
-                    inst.shiftName = "الفترة الأولى للسيدات (1 - 9) [18 حصة]";
-                    inst.shiftCode = `${inst.category}-S1-F`;
-                    inst.minSlot = 1;
-                    inst.maxSlot = 9;
-                } else {
-                    inst.shiftName = "الفترة الثانية للسيدات (11 - 19) [18 حصة]";
+                if (newShift === 'S2') {
+                    inst.shiftName = "الفترة المسائية سيدات (11 - 19) [9 حصص | 18 سعة]";
                     inst.shiftCode = `${inst.category}-S2-F`;
                     inst.minSlot = 11;
                     inst.maxSlot = 19;
+                } else {
+                    inst.shiftName = "الفترة الصباحية سيدات (1 - 9) [9 حصص | 18 سعة]";
+                    inst.shiftCode = `${inst.category}-S1-F`;
+                    inst.minSlot = 1;
+                    inst.maxSlot = 9;
                 }
             } else {
                 inst.capacity = 20;
-                if (newShift === 'S1') {
-                    inst.shiftName = "الفترة الأولى (1 - 10) [20 حصة]";
-                    inst.shiftCode = `${inst.category}-S1`;
-                    inst.minSlot = 1;
-                    inst.maxSlot = 10;
-                } else {
+                if (newShift === 'S2') {
                     inst.shiftName = "الفترة الثانية (11 - 20) [20 حصة]";
                     inst.shiftCode = `${inst.category}-S2`;
                     inst.minSlot = 11;
                     inst.maxSlot = 20;
+                } else {
+                    inst.shiftName = "الفترة الأولى (1 - 10) [20 حصة]";
+                    inst.shiftCode = `${inst.category}-S1`;
+                    inst.minSlot = 1;
+                    inst.maxSlot = 10;
                 }
             }
-        } else if (inst.category === 'HT') {
+        } else if (inst.category === 'HT' || inst.category === 'HB' || inst.category === 'LB') {
+            const isHB = (inst.category === 'HB' || inst.category === 'LB');
+            const prefix = isHB ? 'HBFM' : 'HTFM';
+            const catName = isHB ? 'باص ثقيل (HBFM)' : 'الشاحنة الثقيلة';
             inst.capacity = 24;
-            if (newShift === 'S1') {
-                inst.shiftName = "الفترة الأولى (1 - 12) [24 حصة]";
-                inst.shiftCode = "HTFM-S1";
-                inst.minSlot = 1;
-                inst.maxSlot = 12;
-            } else {
-                inst.shiftName = "الفترة الثانية (13 - 24) [24 حصة]";
-                inst.shiftCode = "HTFM-S2";
+            if (newShift === 'S2') {
+                inst.shiftName = `الفترة الثانية (${catName}: 13 - 24) [24 حصة]`;
+                inst.shiftCode = `${prefix}-S2`;
                 inst.minSlot = 13;
                 inst.maxSlot = 24;
+            } else {
+                inst.shiftName = `الفترة الأولى (${catName}: 1 - 12) [24 حصة]`;
+                inst.shiftCode = `${prefix}-S1`;
+                inst.minSlot = 1;
+                inst.maxSlot = 12;
+            }
+        } else if (inst.category === 'MC') {
+            inst.capacity = 26;
+            if (newShift === 'S1') {
+                inst.shift = 'S1';
+                inst.shiftName = "الفترة الأولى صباحي - المركز الرئيسي (1 - 13) [26 حصة]";
+                inst.shiftCode = "MC-S1";
+                inst.minSlot = 1;
+                inst.maxSlot = 13;
+            } else if (newShift === 'S2') {
+                inst.shift = 'S2';
+                inst.shiftName = "الفترة الثانية مسائي - المركز الرئيسي (14 - 26) [26 حصة]";
+                inst.shiftCode = "MC-S2";
+                inst.minSlot = 14;
+                inst.maxSlot = 26;
+            } else {
+                inst.shift = 'FIX';
+                inst.shiftName = "فترة الدراجة النارية الثابتة بالفرع (6 - 17) [26 حصة]";
+                inst.shiftCode = "MC-FIX";
+                inst.minSlot = 6;
+                inst.maxSlot = 17;
             }
         }
 
@@ -2541,6 +2856,7 @@ class SDIReportApp {
 
     /* ================= مؤشر تفاصيل الطالب التفاعلي اللحظي (Hover Tooltip) ================= */
     showSlotTooltip(e, el) {
+        if (!el) return;
         let tooltip = document.getElementById('sdi-global-tooltip');
         if (!tooltip) {
             tooltip = document.createElement('div');
@@ -2549,15 +2865,39 @@ class SDIReportApp {
             document.body.appendChild(tooltip);
         }
 
-        const sName = el.dataset.studentName || '';
-        const sId = el.dataset.studentId || '';
-        const s2Name = el.dataset.student2Name || '';
-        const s2Id = el.dataset.student2Id || '';
-        const course = el.dataset.course || '';
-        const loc = el.dataset.location || 'R';
-        const isFixed = el.dataset.isFixed === '1';
-        const hasDual = el.dataset.hasDual === '1';
+        let sName = el.dataset.studentName || '';
+        let sId = el.dataset.studentId || '';
+        let s2Name = el.dataset.student2Name || '';
+        let s2Id = el.dataset.student2Id || '';
+        let course = el.dataset.course || '';
+        let loc = el.dataset.location || 'R';
+        let isFixed = el.dataset.isFixed === '1';
+        let hasDual = el.dataset.hasDual === '1';
         const isAr = this.lang === 'ar';
+
+        // محاولة الاستخراج اللحظي من المدرب إذا لم تكن البيانات مسجلة على الزر
+        if ((!sName && !sId) && el.dataset.instId && el.dataset.slot) {
+            const instId = el.dataset.instId;
+            const slotNum = parseInt(el.dataset.slot, 10);
+            const dayKey = el.dataset.day || 'sat';
+            const inst = (this.instructors || []).find(i => String(i.id).trim() === String(instId).trim());
+            if (inst && Array.isArray(inst.fullSchedule)) {
+                const sObj = inst.fullSchedule.find(s => s.slot === slotNum);
+                if (sObj) {
+                    const d = (dayKey === 'sat') ? sObj.satDetails : sObj.sunDetails;
+                    if (d && (d.studentName || d.studentId)) {
+                        sName = d.studentName || '';
+                        sId = d.studentId || '';
+                        s2Name = d.student2Name || '';
+                        s2Id = d.student2Id || '';
+                        course = d.course || course;
+                        loc = d.location || loc;
+                        isFixed = !!d.isFixed;
+                        hasDual = !!d.hasDualStudents;
+                    }
+                }
+            }
+        }
 
         const headerTitle = isFixed 
             ? (isAr ? '📌 مشغول - Fixed (مثبتة بالخطة)' : '📌 Occupied - Fixed') 
@@ -2611,7 +2951,11 @@ class SDIReportApp {
             </div>
         `;
 
+        tooltip.style.right = 'auto';
+        tooltip.style.bottom = 'auto';
         tooltip.style.display = 'block';
+        tooltip.style.visibility = 'visible';
+        tooltip.style.opacity = '1';
         this.moveSlotTooltip(e);
     }
 
@@ -2639,7 +2983,10 @@ class SDIReportApp {
 
     hideSlotTooltip() {
         const tooltip = document.getElementById('sdi-global-tooltip');
-        if (tooltip) tooltip.style.display = 'none';
+        if (tooltip) {
+            tooltip.style.display = 'none';
+            tooltip.style.visibility = 'hidden';
+        }
     }
 
     /* ================= نافذة تعديل تفاصيل الحصة ================= */
@@ -2853,10 +3200,11 @@ class SDIReportApp {
         const isAr = this.lang === 'ar';
         const totalInsts = this.instructors.length;
         const supervisorCount = this.instructors.filter(i => this.isSupervisor(i)).length;
-        const femaleCount = this.instructors.filter(i => i.gender === 'female' && !this.isSupervisor(i)).length;
-        const maleCount = this.instructors.filter(i => !this.isSupervisor(i) && (i.gender === 'male' || !i.gender)).length;
-        const morningCount = this.instructors.filter(i => !this.isSupervisor(i) && (i.shift === 'S1' || i.category === 'MC')).length;
-        const eveningCount = this.instructors.filter(i => !this.isSupervisor(i) && i.shift === 'S2').length;
+        const assistantCount = this.instructors.filter(i => this.isAssistant(i)).length;
+        const femaleCount = this.instructors.filter(i => i.gender === 'female' && !this.isFlexibleRole(i)).length;
+        const maleCount = this.instructors.filter(i => !this.isFlexibleRole(i) && (i.gender === 'male' || !i.gender)).length;
+        const morningCount = this.instructors.filter(i => !this.isFlexibleRole(i) && (i.shift === 'S1' || i.category === 'MC')).length;
+        const eveningCount = this.instructors.filter(i => !this.isFlexibleRole(i) && i.shift === 'S2').length;
 
         let rowsHtml = '';
         if (totalInsts === 0) {
@@ -2872,39 +3220,63 @@ class SDIReportApp {
         } else {
             this.instructors.forEach((inst) => {
                 const isSup = this.isSupervisor(inst);
+                const isAst = this.isAssistant(inst);
+                const isFlex = this.isFlexibleRole(inst);
                 const isFem = (inst.gender === 'female');
-                const isMorning = inst.shift === 'S1' || inst.category === 'MC';
+                const isMorning = inst.shift === 'S1' || (inst.category === 'MC' && inst.shift !== 'S2');
 
                 let shiftBadge = '';
                 if (isSup) {
-                    shiftBadge = `<span style="background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:4px; font-weight:700; font-size:11px;">👔 ${isAr ? 'تكليف طارئ (عند الحاجة)' : 'Ad-hoc on demand'}</span>`;
-                } else if (isFem) {
+                    shiftBadge = `<span style="background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:4px; font-weight:700; font-size:11px;">👔 ${isAr ? 'مشرف (تكليف طارئ)' : 'Supervisor (Ad-hoc)'}</span>`;
+                } else if (isAst) {
+                    shiftBadge = `<span style="background:#f3e8ff; color:#7e22ce; padding:3px 8px; border-radius:4px; font-weight:700; font-size:11px;">🤝 ${isAr ? 'مساعد مدرب (جدول مرن)' : 'Assistant (Flexible)'}</span>`;
+                } else if (inst.category === 'MC') {
+                    if (inst.shift === 'S2') {
+                        shiftBadge = `<span class="shift-badge-evening">🏍️ ${isAr ? 'مسائي إدارة (14-26 | 13 حصة)' : 'HQ Evening (14-26 | 13 slots)'}</span>`;
+                    } else if (inst.shift === 'S1') {
+                        shiftBadge = `<span class="shift-badge-morning">🏍️ ${isAr ? 'صباحي إدارة (1-13 | 13 حصة)' : 'HQ Morning (1-13 | 13 slots)'}</span>`;
+                    } else {
+                        shiftBadge = `<span class="shift-badge-morning">🏍️ ${isAr ? 'فترة فرعية (6-17 | 13 حصة)' : 'Branch Shift (6-17 | 13 slots)'}</span>`;
+                    }
+                } else if (inst.category === 'HB' || inst.category === 'HT' || inst.category === 'LB') {
+                    const isBus = (inst.category === 'HB' || inst.category === 'LB');
+                    const catLabel = isBus ? (isAr ? 'باص ثقيل' : 'Heavy Bus') : (isAr ? 'شاحنة ثقيلة' : 'Heavy Truck');
                     shiftBadge = inst.shift === 'S2'
-                        ? `<span class="shift-badge-evening">🌇 ${isAr ? 'مسائي (11-19 | 9 حصص)' : 'Evening (11-19 | 9 slots)'}</span>`
-                        : `<span class="shift-badge-morning">🌅 ${isAr ? 'صباحي (1-9 | 9 حصص)' : 'Morning (1-9 | 9 slots)'}</span>`;
+                        ? `<span class="shift-badge-evening">🌇 ${isAr ? `مسائي (${catLabel} 13-24 | 12 حصة)` : `Evening (${catLabel} 13-24 | 12 slots)`}</span>`
+                        : `<span class="shift-badge-morning">🌅 ${isAr ? `صباحي (${catLabel} 1-12 | 12 حصة)` : `Morning (${catLabel} 1-12 | 12 slots)`}</span>`;
                 } else {
-                    shiftBadge = isMorning
-                        ? `<span class="shift-badge-morning">🌅 ${isAr ? 'الفترة الصباحية (1-10)' : 'Morning Shift (1-10)'}</span>`
-                        : `<span class="shift-badge-evening">🌇 ${isAr ? 'الفترة المسائية (11-20)' : 'Evening Shift (11-20)'}</span>`;
+                    if (isFem) {
+                        shiftBadge = inst.shift === 'S2'
+                            ? `<span class="shift-badge-evening">🌇 ${isAr ? 'مسائي سيدات (11-19 | 9 حصص)' : 'Female Evening (11-19 | 9 slots)'}</span>`
+                            : `<span class="shift-badge-morning">🌅 ${isAr ? 'صباحي سيدات (1-9 | 9 حصص)' : 'Female Morning (1-9 | 9 slots)'}</span>`;
+                    } else {
+                        shiftBadge = inst.shift === 'S2'
+                            ? `<span class="shift-badge-evening">🌇 ${isAr ? 'مسائي (11-20 | 10 حصص)' : 'Evening (11-20 | 10 slots)'}</span>`
+                            : `<span class="shift-badge-morning">🌅 ${isAr ? 'صباحي (1-10 | 10 حصص)' : 'Morning (1-10 | 10 slots)'}</span>`;
+                    }
                 }
 
                 // شارة الصفة والجنس
                 let roleGenderBadge = '';
                 if (isSup) {
                     roleGenderBadge = `<span style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; padding:2px 7px; border-radius:4px; font-weight:700; font-size:11px;">👔 ${isAr ? 'مشرف / سوبرفايزر' : 'Supervisor'}</span>`;
+                } else if (isAst) {
+                    roleGenderBadge = `<span style="background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff; padding:2px 7px; border-radius:4px; font-weight:700; font-size:11px;">🤝 ${isAr ? 'مساعد مدرب' : 'Assistant Trainer'}</span>`;
                 } else if (isFem) {
-                    roleGenderBadge = `<span style="background:#fce7f3; color:#be185d; border:1px solid #fbcfe8; padding:2px 7px; border-radius:4px; font-weight:700; font-size:11px;">👩 ${isAr ? 'مدربة سيدة' : 'Female'}</span>`;
+                    roleGenderBadge = `<span style="background:#fce7f3; color:#be185d; border:1px solid #fbcfe8; padding:2px 7px; border-radius:4px; font-weight:700; font-size:11px;">👩 ${isAr ? 'مدربة سيدة (9 حصص | 18 سعة)' : 'Female (9 slots | 18 cap)'}</span>`;
                 } else {
-                    roleGenderBadge = `<span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:2px 7px; border-radius:4px; font-weight:700; font-size:11px;">👨 ${isAr ? 'مدرب رسمي' : 'Male'}</span>`;
+                    roleGenderBadge = `<span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:2px 7px; border-radius:4px; font-weight:700; font-size:11px;">👨 ${isAr ? 'مدرب رسمي' : 'Male Instructor'}</span>`;
                 }
 
-                const icon = inst.category === 'MC' ? '🏍️' : (inst.category === 'HT' ? '🚛' : '🚗');
+                const icon = inst.category === 'MC' ? '🏍️' : (inst.category === 'HT' ? '🚛' : ((inst.category === 'HB' || inst.category === 'LB') ? '🚌' : '🚗'));
                 
                 let shiftActionBtn = '';
-                if (isSup) {
-                    shiftActionBtn = `<span style="font-size:11px; color:#b45309; font-weight:bold;">${isAr ? 'تكليف مباشر' : 'On-demand'}</span>`;
+                if (isFlex) {
+                    shiftActionBtn = `<span style="font-size:11px; color:#7e22ce; font-weight:bold;">${isAr ? 'جدول مرن' : 'Flexible'}</span>`;
                 } else if (inst.category === 'MC') {
-                    shiftActionBtn = `<span style="font-size:11px; color:#64748b;">${isAr ? 'فترة ثابتة' : 'Fixed Shift'}</span>`;
+                    const nextShift = inst.shift === 'FIX' ? 'S1' : (inst.shift === 'S1' ? 'S2' : 'FIX');
+                    const nextLabel = inst.shift === 'FIX' ? (isAr ? 'صباحي إدارة' : 'HQ Morning') : (inst.shift === 'S1' ? (isAr ? 'مسائي إدارة' : 'HQ Evening') : (isAr ? 'فرعي' : 'Branch FIX'));
+                    shiftActionBtn = `<button class="btn btn-outline btn-sm" style="font-size:11px; padding:3px 8px;" onclick="app.quickSwitchShift('${inst.id}', '${nextShift}')" title="${isAr ? `تحويل إلى ${nextLabel}` : `Switch to ${nextLabel}`}">🔄 ${nextLabel}</button>`;
                 } else {
                     shiftActionBtn = (inst.shift === 'S1'
                         ? `<button class="btn btn-outline btn-sm" style="font-size:11px; padding:3px 8px;" onclick="app.quickSwitchShift('${inst.id}', 'S2')" title="${isAr ? 'تحويل هذا المدرب للفترة المسائية فورياً' : 'Switch instructor to evening shift'}">${this.t('btnSwitchEvening')}</button>`
@@ -2913,24 +3285,30 @@ class SDIReportApp {
 
                 // حساب السعة والنطاق المعتمد
                 let slotsRangeStr = '';
-                if (isSup) {
-                    slotsRangeStr = `<span style="color:#b45309; font-weight:700;">${isAr ? 'الحصص المسجلة فقط (بدون جدول ثابت | 0 خالية)' : 'Recorded only (No template | 0 empty)'}</span>`;
+                if (isFlex) {
+                    slotsRangeStr = `<span style="color:#7e22ce; font-weight:700;">${isAr ? 'الحصص المسجلة فقط (جدول مرن | 0 خالية)' : 'Recorded only (Flexible | 0 empty)'}</span>`;
                 } else if (inst.category === 'MC') {
-                    slotsRangeStr = `<span style="color:#166534; font-weight:700;">6 إلى 17 (24 حصة)</span>`;
-                } else if (inst.category === 'HT') {
+                    if (inst.shift === 'S2') {
+                        slotsRangeStr = `<span style="color:#166534; font-weight:700;">14 إلى 26 (13 حصة يومياً | 26 سعة)</span>`;
+                    } else if (inst.shift === 'S1') {
+                        slotsRangeStr = `<span style="color:#166534; font-weight:700;">1 إلى 13 (13 حصة يومياً | 26 سعة)</span>`;
+                    } else {
+                        slotsRangeStr = `<span style="color:#166534; font-weight:700;">6 إلى 17 (12 حصة يومياً | 24 سعة)</span>`;
+                    }
+                } else if (inst.category === 'HB' || inst.category === 'HT' || inst.category === 'LB') {
                     slotsRangeStr = inst.shift === 'S2'
-                        ? `<span style="color:#166534; font-weight:700;">13 إلى 24 (24 حصة)</span>`
-                        : `<span style="color:#166534; font-weight:700;">1 إلى 12 (24 حصة)</span>`;
-                } else if (isFem) {
-                    // قاعدة السيدات المعتمدة: 9 حصص يومياً (18 حصة إجمالاً)
-                    slotsRangeStr = inst.shift === 'S2'
-                        ? `<span style="color:#be185d; font-weight:700;">11 إلى 19 (18 حصة معتمدة | 9 يومياً)</span>`
-                        : `<span style="color:#be185d; font-weight:700;">1 إلى 9 (18 حصة معتمدة | 9 يومياً)</span>`;
+                        ? `<span style="color:#166534; font-weight:700;">13 إلى 24 (12 حصة يومياً | 24 سعة)</span>`
+                        : `<span style="color:#166534; font-weight:700;">1 إلى 12 (12 حصة يومياً | 24 سعة)</span>`;
                 } else {
-                    // المدربون الذكور: 10 حصص يومياً (20 حصة إجمالاً)
-                    slotsRangeStr = inst.shift === 'S2'
-                        ? `<span style="color:#166534; font-weight:700;">11 إلى 20 (20 حصة معتمدة | 10 يومياً)</span>`
-                        : `<span style="color:#166534; font-weight:700;">1 إلى 10 (20 حصة معتمدة | 10 يومياً)</span>`;
+                    if (isFem) {
+                        slotsRangeStr = inst.shift === 'S2'
+                            ? `<span style="color:#166534; font-weight:700;">11 إلى 19 (9 حصص يومياً | 18 سعة)</span>`
+                            : `<span style="color:#166534; font-weight:700;">1 إلى 9 (9 حصص يومياً | 18 سعة)</span>`;
+                    } else {
+                        slotsRangeStr = inst.shift === 'S2'
+                            ? `<span style="color:#166534; font-weight:700;">11 إلى 20 (10 حصص يومياً | 20 سعة)</span>`
+                            : `<span style="color:#166534; font-weight:700;">1 إلى 10 (10 حصص يومياً | 20 سعة)</span>`;
+                    }
                 }
 
                 const autoBadge = inst.isAutoAdded 
@@ -2994,16 +3372,16 @@ class SDIReportApp {
                         <span style="font-size: 11px; color: #0284c7;">${isAr ? 'إجمالي المدربين والمشرفين' : 'Total staff'}</span>
                     </div>
 
+                    <div class="summary-card" style="background: white; border: 1px solid #f3e8ff; border-radius: 8px; padding: 12px 16px; border-right: 4px solid #9333ea;">
+                        <span style="font-size: 11.5px; color: #7e22ce; font-weight: 700;">👔 المشرفون ومساعدو المدربين</span>
+                        <div style="font-size: 22px; font-weight: 900; color: #7e22ce; margin-top: 4px;">${supervisorCount + assistantCount}</div>
+                        <span style="font-size: 11px; color: #9333ea;">${isAr ? `مشرف: ${supervisorCount} | مساعد: ${assistantCount} (جدول مرن)` : `Sup: ${supervisorCount} | Ast: ${assistantCount} (Flexible)`}</span>
+                    </div>
+
                     <div class="summary-card" style="background: white; border: 1px solid #fbcfe8; border-radius: 8px; padding: 12px 16px; border-right: 4px solid #db2777;">
                         <span style="font-size: 11.5px; color: #9d174d; font-weight: 700;">👩 ${this.t('tab4FemaleKpi')}</span>
                         <div style="font-size: 22px; font-weight: 900; color: #be185d; margin-top: 4px;">${femaleCount}</div>
                         <span style="font-size: 11px; color: #be185d;">${isAr ? '9 حصص يومياً (18 حصة معتمدة)' : '9 slots daily (18 cap)'}</span>
-                    </div>
-
-                    <div class="summary-card" style="background: white; border: 1px solid #fef3c7; border-radius: 8px; padding: 12px 16px; border-right: 4px solid #d97706;">
-                        <span style="font-size: 11.5px; color: #92400e; font-weight: 700;">👔 ${this.t('tab4SupervisorKpi')}</span>
-                        <div style="font-size: 22px; font-weight: 900; color: #b45309; margin-top: 4px;">${supervisorCount}</div>
-                        <span style="font-size: 11px; color: #b45309;">${isAr ? 'تكليف طارئ (إشغال 100%)' : 'Ad-hoc on-demand (100%)'}</span>
                     </div>
 
                     <div class="summary-card" style="background: white; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 16px; border-right: 4px solid #0284c7;">
@@ -3015,7 +3393,7 @@ class SDIReportApp {
                     <div class="summary-card" style="background: white; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; border-right: 4px solid #16a34a;">
                         <span style="font-size: 11.5px; color: #15803d; font-weight: 700;">🌅 وردية صباحية / مسائية</span>
                         <div style="font-size: 18px; font-weight: 900; color: #166534; margin-top: 4px;">${morningCount} ص | ${eveningCount} م</div>
-                        <span style="font-size: 11px; color: #15803d;">${isAr ? 'توزيع الورديات اليومية' : 'Daily shifts distribution'}</span>
+                        <span style="font-size: 11px; color: #15803d;">${isAr ? 'توزيع الورديات الأساسية' : 'Primary shifts distribution'}</span>
                     </div>
                 </div>
 
@@ -3049,36 +3427,39 @@ class SDIReportApp {
                                 <div class="form-group">
                                     <label for="tab4-inst-role">${this.t('lblInstRole')} <span style="color:#ef4444;">*</span></label>
                                     <select id="tab4-inst-role" class="form-control" onchange="app.updateTab4Preview()">
-                                        <option value="instructor">🚗 مدرب تدريب رسمي</option>
-                                        <option value="supervisor">👔 مشرف / سوبرفايزر (تكليف طارئ - إشغال 100%)</option>
+                                        <option value="instructor">🚗 مدرب تدريب رسمي (10 حصص خفيفة ذكور / 9 إناث / 12 ثقيل وباص / 13 دراجة)</option>
+                                        <option value="assistant">🤝 مساعد مدرب (جدول مرن - الحصص المسجلة فقط | 0 خالية)</option>
+                                        <option value="supervisor">👔 مشرف / سوبرفايزر (جدول مرن - الحصص المسجلة فقط | 0 خالية)</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="tab4-inst-gender">${this.t('lblInstGender')} <span style="color:#ef4444;">*</span></label>
                                     <select id="tab4-inst-gender" class="form-control" onchange="app.updateTab4Preview()">
-                                        <option value="male">👨 ذكر (10 حصص يومياً / 20 إجمالي)</option>
-                                        <option value="female">👩 سيدة / أنثى (9 حصص يومياً / 18 إجمالي)</option>
+                                        <option value="male">👨 ذكر (10 حصص للمركبات الخفيفة | 20 سعة)</option>
+                                        <option value="female">👩 سيدة / أنثى (9 حصص للمركبات الخفيفة | 18 سعة)</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="tab4-inst-category">${this.t('lblInstCategory')} <span style="color:#ef4444;">*</span></label>
                                     <select id="tab4-inst-category" class="form-control" onchange="app.updateTab4Preview()">
-                                        <option value="LMFM">${isAr ? '🚗 مركبة خفيفة - جير عادي (LMFM - 40 دقيقة)' : '🚗 Light Motor - Manual (LMFM - 40 mins)'}</option>
-                                        <option value="LMFA">${isAr ? '🚙 مركبة خفيفة - أوتوماتيك (LMFA - 40 دقيقة)' : '🚙 Light Motor - Automatic (LMFA - 40 mins)'}</option>
-                                        <option value="HT">${isAr ? '🚛 شاحنة ثقيلة (HTFM - 30 دقيقة)' : '🚛 Heavy Truck (HTFM - 30 mins)'}</option>
-                                        <option value="MC">${isAr ? '🏍️ دراجة نارية (MC - 30 دقيقة)' : '🏍️ Motorcycle (MC - 30 mins)'}</option>
+                                        <option value="LMFM">${isAr ? '🚗 مركبة خفيفة - جير عادي (LMFM - 40 د)' : '🚗 Light Motor - Manual (LMFM - 40m)'}</option>
+                                        <option value="LMFA">${isAr ? '🚙 مركبة خفيفة - أوتوماتيك (LMFA - 40 د)' : '🚙 Light Motor - Automatic (LMFA - 40m)'}</option>
+                                        <option value="HB">${isAr ? '🚌 باص ثقيل (HBFM - 12 حصة / 30 د)' : '🚌 Heavy Bus (HBFM - 12 slots / 30m)'}</option>
+                                        <option value="HT">${isAr ? '🚛 شاحنة ثقيلة (HTFM - 12 حصة / 30 د)' : '🚛 Heavy Truck (HTFM - 12 slots / 30m)'}</option>
+                                        <option value="MC">${isAr ? '🏍️ دراجة نارية (MC - 13 حصة / 30 د)' : '🏍️ Motorcycle (MC - 13 slots / 30m)'}</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="tab4-inst-shift">${this.t('lblInstShift')} <span style="color:#ef4444;">*</span></label>
                                     <select id="tab4-inst-shift" class="form-control" onchange="app.updateTab4Preview()">
-                                        <option value="S1">${isAr ? '🌅 الفترة الصباحية (الأولى) - الحصص 1 إلى 10 (أو 1 إلى 9 للسيدات)' : '🌅 Morning Shift (1st) - Slots 1 to 10 (or 1 to 9 for females)'}</option>
-                                        <option value="S2">${isAr ? '🌇 الفترة المسائية (الثانية) - الحصص 11 إلى 20 (أو 11 إلى 19 للسيدات)' : '🌇 Evening Shift (2nd) - Slots 11 to 20 (or 11 to 19 for females)'}</option>
-                                        <option value="FIX">${isAr ? '⏱️ فترة ثابتة للدراجة النارية (6 إلى 17)' : '⏱️ Fixed Shift Motorcycle (6 to 17)'}</option>
-                                        <option value="SUP">${isAr ? '👔 مشرف / سوبرفايزر (Supervisor) - تكليف طارئ (معدل إشغال 100%)' : '👔 Supervisor - Ad-hoc Sessions (100% Rate)'}</option>
+                                        <option value="S1">${isAr ? '🌅 الفترة الصباحية (الأولى) - خفيف (1-10 ذكور / 1-9 إناث) أو ثقيل/باص (1-12) أو دراجة إدارة (1-13)' : '🌅 Morning Shift (1st) - Light (1-10 M / 1-9 F) | Heavy/Bus (1-12) | MC HQ (1-13)'}</option>
+                                        <option value="S2">${isAr ? '🌇 الفترة المسائية (الثانية) - خفيف (11-20 ذكور / 11-19 إناث) أو ثقيل/باص (13-24) أو دراجة إدارة (14-26)' : '🌇 Evening Shift (2nd) - Light (11-20 M / 11-19 F) | Heavy/Bus (13-24) | MC HQ (14-26)'}</option>
+                                        <option value="FIX">${isAr ? '⏱️ دراجة نارية - فترة الفرع (6 إلى 17 | 13 حصة معتمدة مدة 30 د)' : '⏱️ Motorcycle - Branch Shift (6 to 17 | 13 slots / 30m)'}</option>
+                                        <option value="AST">${isAr ? '🤝 مساعد مدرب (Assistant) - جدول مرن (الحصص المسجلة فقط)' : '🤝 Assistant - Flexible (Trained slots only)'}</option>
+                                        <option value="SUP">${isAr ? '👔 مشرف / سوبرفايزر (Supervisor) - جدول مرن (الحصص المسجلة فقط)' : '👔 Supervisor - Flexible (Trained slots only)'}</option>
                                     </select>
                                 </div>
                             </div>
@@ -3089,7 +3470,7 @@ class SDIReportApp {
                                     <span style="font-size: 13px; font-weight: 800; color: #166534;">${this.t('lblShiftCodePreview')}</span>
                                     <span id="tab4-preview-code" class="smart-code-badge">LMFM-S1</span>
                                     <span id="tab4-preview-desc" style="font-size: 12.5px; color: #15803d; font-weight: 600;">
-                                        ${isAr ? 'الحصص المسجلة: 1 إلى 10 فقط (السعة الكلية 20 حصة)' : 'Approved slots: 1 to 10 (20 capacity)'}
+                                        ${isAr ? 'الحصص المعتمدة: 1 إلى 10 (10 حصص يومياً | السعة الكلية 20 حصة)' : 'Approved slots: 1 to 10 (10 slots daily | 20 capacity)'}
                                     </span>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
@@ -3105,8 +3486,8 @@ class SDIReportApp {
                 <div style="margin-top: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                         <div>
-                            <strong style="font-size: 15px; color: var(--text-main);">👥 ${isAr ? 'الكادر التدريبي المسجل' : 'Registered Instructors'} (${totalInsts} ${isAr ? 'مدرب ومشرف' : 'instructors & supervisors'}):</strong>
-                            <span style="font-size: 12px; color: #64748b; ${isAr ? 'margin-right: 8px;' : 'margin-left: 8px;'}">(${isAr ? 'مدربات سيدات 18 حصة | مدربين ذكور 20 حصة | مشرفين تكليف طارئ 100%' : 'Females 18 cap | Males 20 cap | Supervisors 100% on demand'})</span>
+                            <strong style="font-size: 15px; color: var(--text-main);">👥 ${isAr ? 'الكادر التدريبي المسجل' : 'Registered Instructors'} (${totalInsts} ${isAr ? 'مدرب ومساعد ومشرف' : 'instructors, assistants & supervisors'}):</strong>
+                            <span style="font-size: 12px; color: #64748b; ${isAr ? 'margin-right: 8px;' : 'margin-left: 8px;'}">(${isAr ? 'خفيف: ذكور 10 حصص (20 سعة) وإناث 9 حصص (18 سعة) | ثقيل وباص 12 حصة (24 سعة) | دراجة 13 حصة (26 سعة) | مساعد ومشرف جدول مرن' : 'Light: Male 10 slots (20 cap), Female 9 slots (18 cap) | Heavy & Bus 12 slots (24 cap) | MC 13 slots (26 cap) | Flexible Ast/Sup'})</span>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center;">
                             <span class="shift-badge-morning">🌅 ${isAr ? 'الصباحي' : 'Morning'}: ${morningCount}</span>
@@ -3155,59 +3536,81 @@ class SDIReportApp {
             shiftEl.value = 'SUP';
             codeEl.innerText = `SUP-${cat}`;
             descEl.innerHTML = isAr
-                ? '👔 <strong>مشرف / سوبرفايزر:</strong> ليس لديه جدول تدريب رسمي 20 حصة، تحسب له الحصص المسندة فقط بمعدل إشغال 100% وبدون أي حصص خالية.'
-                : '👔 <strong>Supervisor:</strong> No 20-slot schedule; only assigned sessions count at 100% occupancy with zero empty slots.';
+                ? '👔 <strong>مشرف / سوبرفايزر:</strong> جدول مرن ليس لديه سعة ثابتة، تحسب له الحصص المسندة فقط بمعدل إشغال 100% وبدون أي حصص خالية.'
+                : '👔 <strong>Supervisor:</strong> Flexible schedule without fixed template; only assigned sessions count at 100% occupancy with zero empty slots.';
+            return;
+        }
+
+        if (role === 'assistant' || sh === 'AST') {
+            shiftEl.value = 'AST';
+            codeEl.innerText = `AST-${cat}`;
+            descEl.innerHTML = isAr
+                ? '🤝 <strong>مساعد مدرب:</strong> جدول مرن ليس لديه سعة ثابتة، يُسجل له عدد الحصص التي يقوم بتدريبها فقط بمعدل إشغال 100% وبدون أي حصص خالية.'
+                : '🤝 <strong>Assistant Trainer:</strong> Flexible schedule without fixed template; only trained sessions count at 100% occupancy with zero empty slots.';
             return;
         }
 
         if (cat === 'MC') {
-            shiftEl.value = 'FIX';
-            codeEl.innerText = 'MC-FIX';
-            descEl.innerHTML = isAr
-                ? '🏍️ <strong>فترة ثابتة للدراجة النارية:</strong> الحصص <strong>6 إلى 17</strong> فقط (12 حصة | مدة الحصة 30 دقيقة)'
-                : 'Fixed Shift: Slots <strong>6 to 17</strong> only (12 slots | 30 mins)';
-        } else if (cat === 'HT') {
-            if (sh === 'FIX' || sh === 'SUP') { shiftEl.value = 'S1'; sh = 'S1'; }
+            if (sh !== 'S1' && sh !== 'S2' && sh !== 'FIX') {
+                shiftEl.value = 'FIX';
+                sh = 'FIX';
+            }
             if (sh === 'S1') {
-                codeEl.innerText = 'HTFM-S1';
+                codeEl.innerText = 'MC-S1';
                 descEl.innerHTML = isAr
-                    ? '🚛 <strong>فترة صباحية للشاحنة:</strong> الحصص <strong>1 إلى 12</strong> (12 حصة يومياً | السعة الكلية 24 حصة)'
-                    : 'Morning Shift: Slots <strong>1 to 12</strong> (12 slots daily | 24 capacity)';
+                    ? '🏍️ <strong>دراجة نارية (فترة صباحية - الإدارة العليا):</strong> الحصص <strong>1 إلى 13</strong> (13 حصة يومياً | مدة 30 دقيقة | السعة الكلية 26 حصة)'
+                    : '🏍️ <strong>Motorcycle (Morning - HQ):</strong> Slots <strong>1 to 13</strong> (13 slots daily | 30 mins | 26 total capacity)';
+            } else if (sh === 'S2') {
+                codeEl.innerText = 'MC-S2';
+                descEl.innerHTML = isAr
+                    ? '🏍️ <strong>دراجة نارية (فترة مسائية - الإدارة العليا):</strong> الحصص <strong>14 إلى 26</strong> (13 حصة يومياً | مدة 30 دقيقة | السعة الكلية 26 حصة)'
+                    : '🏍️ <strong>Motorcycle (Evening - HQ):</strong> Slots <strong>14 to 26</strong> (13 slots daily | 30 mins | 26 total capacity)';
             } else {
-                codeEl.innerText = 'HTFM-S2';
+                codeEl.innerText = 'MC-FIX';
                 descEl.innerHTML = isAr
-                    ? '🚛 <strong>فترة مسائية للشاحنة:</strong> الحصص <strong>13 إلى 24</strong> (12 حصة يومياً | السعة الكلية 24 حصة)'
-                    : 'Evening Shift: Slots <strong>13 to 24</strong> (12 slots daily | 24 capacity)';
+                    ? '🏍️ <strong>دراجة نارية (فترة الفرع الثابتة):</strong> الحصص <strong>6 إلى 17</strong> (12 حصة يومياً | مدة 30 دقيقة | السعة الكلية 24 حصة)'
+                    : '🏍️ <strong>Motorcycle (Branch Shift):</strong> Slots <strong>6 to 17</strong> (12 slots daily | 30 mins | 24 total capacity)';
+            }
+        } else if (cat === 'HB' || cat === 'HT' || cat === 'LB') {
+            if (sh === 'FIX' || sh === 'SUP' || sh === 'AST') { shiftEl.value = 'S1'; sh = 'S1'; }
+            const isBus = (cat === 'HB' || cat === 'LB');
+            const prefix = isBus ? 'HBFM' : 'HTFM';
+            const catLabel = isBus ? (isAr ? 'باص ثقيل' : 'Heavy Bus') : (isAr ? 'شاحنة ثقيلة' : 'Heavy Truck');
+            if (sh === 'S1') {
+                codeEl.innerText = `${prefix}-S1`;
+                descEl.innerHTML = isAr
+                    ? `🚌 <strong>فترة صباحية (${catLabel}):</strong> الحصص <strong>1 إلى 12</strong> (12 حصة يومياً | مدة 30 دقيقة | السعة الكلية 24 حصة)`
+                    : `Morning Shift (${catLabel}): Slots <strong>1 to 12</strong> (12 slots daily | 30 mins | 24 capacity)`;
+            } else {
+                codeEl.innerText = `${prefix}-S2`;
+                descEl.innerHTML = isAr
+                    ? `🚌 <strong>فترة مسائية (${catLabel}):</strong> الحصص <strong>13 إلى 24</strong> (12 حصة يومياً | مدة 30 دقيقة | السعة الكلية 24 حصة)`
+                    : `Evening Shift (${catLabel}): Slots <strong>13 to 24</strong> (12 slots daily | 30 mins | 24 capacity)`;
             }
         } else {
-            // المركبة الخفيفة: التمييز بين السيدات 18 حصة والذكور 20 حصة
-            if (sh === 'FIX' || sh === 'SUP') { shiftEl.value = 'S1'; sh = 'S1'; }
+            // المركبات الخفيفة LMFM / LMFA: إناث 9 حصص (18 سعة) وذكور 10 حصص (20 سعة)
+            if (sh === 'FIX' || sh === 'SUP' || sh === 'AST') { shiftEl.value = 'S1'; sh = 'S1'; }
             const isFem = (gender === 'female');
+            const suffix = isFem ? '-F' : '';
 
-            if (isFem) {
-                if (sh === 'S1') {
-                    codeEl.innerText = `${cat}-S1-F`;
-                    descEl.innerHTML = isAr
-                        ? '👩 <strong>مدربة سيدة (فترة صباحية):</strong> 9 حصص يومياً (الحصص <strong>1 إلى 9</strong>) | <strong>السعة الكلية المعتمدة 18 حصة</strong>.'
-                        : '👩 <strong>Female Instructor (Morning):</strong> 9 slots daily (Slots <strong>1 to 9</strong>) | <strong>Approved Capacity 18 slots</strong>.';
-                } else {
-                    codeEl.innerText = `${cat}-S2-F`;
-                    descEl.innerHTML = isAr
-                        ? '👩 <strong>مدربة سيدة (فترة مسائية):</strong> 9 حصص يومياً (الحصص <strong>11 إلى 19</strong>) | <strong>السعة الكلية المعتمدة 18 حصة</strong>.'
-                        : '👩 <strong>Female Instructor (Evening):</strong> 9 slots daily (Slots <strong>11 to 19</strong>) | <strong>Approved Capacity 18 slots</strong>.';
-                }
+            if (sh === 'S1') {
+                codeEl.innerText = `${cat}-S1${suffix}`;
+                descEl.innerHTML = isFem
+                    ? (isAr
+                        ? `👩 <strong>فترة صباحية (مدربة سيدة):</strong> 9 حصص يومياً (الحصص <strong>1 إلى 9</strong> | مدة 40 دقيقة) | السعة الكلية 18 حصة.`
+                        : `👩 <strong>Morning Shift (Female):</strong> 9 slots daily (Slots <strong>1 to 9</strong> | 40 mins) | Approved Capacity 18 slots.`)
+                    : (isAr
+                        ? `👨 <strong>فترة صباحية (مدرب رسمي):</strong> 10 حصص يومياً (الحصص <strong>1 إلى 10</strong> | مدة 40 دقيقة) | السعة الكلية 20 حصة.`
+                        : `👨 <strong>Morning Shift (Male):</strong> 10 slots daily (Slots <strong>1 to 10</strong> | 40 mins) | Approved Capacity 20 slots.`);
             } else {
-                if (sh === 'S1') {
-                    codeEl.innerText = `${cat}-S1`;
-                    descEl.innerHTML = isAr
-                        ? '👨 <strong>مدرب رسمي (فترة صباحية):</strong> 10 حصص يومياً (الحصص <strong>1 إلى 10</strong>) | السعة الكلية المعتمدة 20 حصة.'
-                        : '👨 <strong>Male Instructor (Morning):</strong> 10 slots daily (Slots <strong>1 to 10</strong>) | Approved Capacity 20 slots.';
-                } else {
-                    codeEl.innerText = `${cat}-S2`;
-                    descEl.innerHTML = isAr
-                        ? '👨 <strong>مدرب رسمي (فترة مسائية):</strong> 10 حصص يومياً (الحصص <strong>11 إلى 20</strong>) | السعة الكلية المعتمدة 20 حصة.'
-                        : '👨 <strong>Male Instructor (Evening):</strong> 10 slots daily (Slots <strong>11 to 20</strong>) | Approved Capacity 20 slots.';
-                }
+                codeEl.innerText = `${cat}-S2${suffix}`;
+                descEl.innerHTML = isFem
+                    ? (isAr
+                        ? `👩 <strong>فترة مسائية (مدربة سيدة):</strong> 9 حصص يومياً (الحصص <strong>11 إلى 19</strong> | مدة 40 دقيقة) | السعة الكلية 18 حصة.`
+                        : `👩 <strong>Evening Shift (Female):</strong> 9 slots daily (Slots <strong>11 to 19</strong> | 40 mins) | Approved Capacity 18 slots.`)
+                    : (isAr
+                        ? `👨 <strong>فترة مسائية (مدرب رسمي):</strong> 10 حصص يومياً (الحصص <strong>11 إلى 20</strong> | مدة 40 دقيقة) | السعة الكلية 20 حصة.`
+                        : `👨 <strong>Evening Shift (Male):</strong> 10 slots daily (Slots <strong>11 to 20</strong> | 40 mins) | Approved Capacity 20 slots.`);
             }
         }
     }
@@ -3228,7 +3631,11 @@ class SDIReportApp {
         const isAr = this.lang === 'ar';
         const shortName = name.split(' ').slice(0, 2).join(' ');
         const isSupervisor = (role === 'supervisor' || shift === 'SUP');
+        const isAssistant = (role === 'assistant' || shift === 'AST');
+        const isFlex = isSupervisor || isAssistant;
+
         if (isSupervisor) shift = 'SUP';
+        if (isAssistant) shift = 'AST';
 
         const isFem = (gender === 'female');
         let shiftCode = '';
@@ -3240,59 +3647,83 @@ class SDIReportApp {
 
         if (isSupervisor) {
             shiftCode = `SUP-${category}`;
-            shiftName = isAr ? 'مشرف (Supervisor) - تكليف طارئ' : 'Supervisor - Ad-hoc Sessions';
+            shiftName = isAr ? 'مشرف (Supervisor) - تكليف طارئ' : 'Supervisor - Flexible';
             minSlot = 1;
-            maxSlot = category === 'HT' ? 24 : 20;
-            vehicleType = category === 'MC' ? 'دراجة نارية (MC)' : (category === 'HT' ? 'شاحنة ثقيلة (HTFM)' : (category === 'LMFM' ? 'خفيفة عادي (LMFM)' : 'خفيفة أوتوماتيك (LMFA)'));
+            maxSlot = (category === 'HT' || category === 'HB' || category === 'LB') ? 24 : (category === 'MC' ? 26 : 20);
+            vehicleType = category === 'MC' ? 'دراجة نارية (MC)' : (category === 'HT' ? 'شاحنة ثقيلة (HTFM)' : ((category === 'HB' || category === 'LB') ? 'باص ثقيل (HBFM)' : (category === 'LMFM' ? 'خفيفة عادي (LMFM)' : 'خفيفة أوتوماتيك (LMFA)')));
+            capacity = 0;
+        } else if (isAssistant) {
+            shiftCode = `AST-${category}`;
+            shiftName = isAr ? 'مساعد مدرب (Assistant) - جدول مرن' : 'Assistant Trainer - Flexible';
+            minSlot = 1;
+            maxSlot = (category === 'HT' || category === 'HB' || category === 'LB') ? 24 : (category === 'MC' ? 26 : 20);
+            vehicleType = category === 'MC' ? 'دراجة نارية (MC)' : (category === 'HT' ? 'شاحنة ثقيلة (HTFM)' : ((category === 'HB' || category === 'LB') ? 'باص ثقيل (HBFM)' : (category === 'LMFM' ? 'خفيفة عادي (LMFM)' : 'خفيفة أوتوماتيك (LMFA)')));
             capacity = 0;
         } else if (category === 'MC') {
-            shiftCode = 'MC-FIX';
-            shiftName = 'فترة ثابتة (6 - 17)';
-            minSlot = 6;
-            maxSlot = 17;
             vehicleType = 'دراجة نارية (MC)';
-            capacity = 24;
-        } else if (category === 'HT') {
-            vehicleType = 'شاحنة ثقيلة (HTFM)';
-            capacity = 24;
+            if (shift === 'S1') {
+                shiftCode = 'MC-S1';
+                shiftName = isAr ? 'فترة صباحية - إدارة (1 - 13)' : 'HQ Morning (1 - 13)';
+                minSlot = 1;
+                maxSlot = 13;
+                capacity = 26; // 13 حصة يومياً
+            } else if (shift === 'S2') {
+                shiftCode = 'MC-S2';
+                shiftName = isAr ? 'فترة مسائية - إدارة (14 - 26)' : 'HQ Evening (14 - 26)';
+                minSlot = 14;
+                maxSlot = 26;
+                capacity = 26; // 13 حصة يومياً
+            } else {
+                shift = 'FIX';
+                shiftCode = 'MC-FIX';
+                shiftName = isAr ? 'فترة الفرع (6 - 17)' : 'Branch Shift (6 - 17)';
+                minSlot = 6;
+                maxSlot = 17;
+                capacity = 24; // 12 حصة يومياً
+            }
+        } else if (category === 'HT' || category === 'HB' || category === 'LB') {
+            const isBus = (category === 'HB' || category === 'LB');
+            const prefix = isBus ? 'HBFM' : 'HTFM';
+            vehicleType = isBus ? 'باص ثقيل (HBFM)' : 'شاحنة ثقيلة (HTFM)';
+            capacity = 24; // 12 حصة يومياً
             if (shift === 'S2') {
-                shiftCode = 'HTFM-S2';
+                shiftCode = `${prefix}-S2`;
                 shiftName = 'الفترة الثانية (13 - 24)';
                 minSlot = 13;
                 maxSlot = 24;
             } else {
-                shiftCode = 'HTFM-S1';
+                shiftCode = `${prefix}-S1`;
                 shiftName = 'الفترة الأولى (1 - 12)';
                 minSlot = 1;
                 maxSlot = 12;
             }
         } else {
+            // المركبات الخفيفة: إناث 9 حصص يومياً (سعة 18)، ذكور 10 حصص يومياً (سعة 20)
             vehicleType = category === 'LMFM' ? 'خفيفة عادي (LMFM)' : 'خفيفة أوتوماتيك (LMFA)';
+            const suffix = isFem ? '-F' : '';
             if (isFem) {
-                // قاعدة السيدات المعتمدة: 9 حصص يومياً (18 حصة إجمالاً)
                 capacity = 18;
                 if (shift === 'S2') {
-                    shiftCode = `${category}-S2-F`;
-                    shiftName = 'الفترة الثانية (11 - 19) [سيدات 18 حصة]';
+                    shiftCode = `${category}-S2${suffix}`;
+                    shiftName = 'الفترة الثانية سيدات (11 - 19) [9 حصص]';
                     minSlot = 11;
                     maxSlot = 19;
                 } else {
-                    shiftCode = `${category}-S1-F`;
-                    shiftName = 'الفترة الأولى (1 - 9) [سيدات 18 حصة]';
+                    shiftCode = `${category}-S1${suffix}`;
+                    shiftName = 'الفترة الأولى سيدات (1 - 9) [9 حصص]';
                     minSlot = 1;
                     maxSlot = 9;
                 }
             } else {
-                // قاعدة المدربين الذكور: 10 حصص يومياً (20 حصة إجمالاً)
                 capacity = 20;
                 if (shift === 'S2') {
-                    shiftCode = `${category}-S2`;
-                    shiftName = 'الفترة الثانية (11 - 20) [20 حصة]';
+                    shiftCode = `${category}-S2${suffix}`;
+                    shiftName = 'الفترة الثانية (11 - 20) [10 حصص]';
                     minSlot = 11;
                     maxSlot = 20;
                 } else {
-                    shiftCode = `${category}-S1`;
-                    shiftName = 'الفترة الأولى (1 - 10) [20 حصة]';
+                    shiftCode = `${category}-S1${suffix}`;
+                    shiftName = 'الفترة الأولى (1 - 10) [10 حصص]';
                     minSlot = 1;
                     maxSlot = 10;
                 }
@@ -3313,9 +3744,10 @@ class SDIReportApp {
             existing.minSlot = minSlot;
             existing.maxSlot = maxSlot;
             existing.isSupervisor = isSupervisor;
-            existing.capacity = capacity;
+            existing.isAssistant = isAssistant;
+            existing.capacity = isFlex ? 0 : capacity;
 
-            if (isSupervisor) {
+            if (isFlex) {
                 if (typeof SDIMasterRoster !== 'undefined') {
                     SDIMasterRoster.pruneSupervisorSchedule(existing);
                 } else {
@@ -3326,16 +3758,17 @@ class SDIReportApp {
                 existing.slotsRows = SDIPdfParser.generateEmptySlotsRows(existing.fullSchedule, existing.category, existing.shift, existing.gender);
             }
             this.selectedInstId = id;
-            this.showToast(`✅ تم تحديث وتكويد ${isSupervisor ? 'المشرف' : (isFem ? 'المدربة' : 'المدرب')} (${shortName}) بنجاح.`);
+            const roleLabel = isSupervisor ? 'المشرف' : (isAssistant ? 'مساعد المدرب' : (isFem ? 'المدربة' : 'المدرب'));
+            this.showToast(`✅ تم تحديث وتكويد ${roleLabel} (${shortName}) بنجاح.`);
         } else {
-            const maxSlotsCount = category === 'HT' ? 24 : 20;
+            const maxSlotsCount = (category === 'MC') ? 26 : ((category === 'HT' || category === 'HB' || category === 'LB') ? 24 : 20);
             const fullSchedule = [];
             for (let s = 1; s <= maxSlotsCount; s++) {
                 fullSchedule.push({ slot: s, sat: 'empty', sun: 'empty' });
             }
 
             let slotsRows = [];
-            if (!isSupervisor && typeof SDIPdfParser !== 'undefined') {
+            if (!isFlex && typeof SDIPdfParser !== 'undefined') {
                 slotsRows = SDIPdfParser.generateEmptySlotsRows(fullSchedule, category, shift, gender);
             }
 
@@ -3351,9 +3784,10 @@ class SDIReportApp {
                 shiftCode,
                 shiftName,
                 isSupervisor,
-                capacity: isSupervisor ? 0 : capacity,
+                isAssistant,
+                capacity: isFlex ? 0 : capacity,
                 occupied: 0,
-                empty: isSupervisor ? 0 : capacity,
+                empty: isFlex ? 0 : capacity,
                 rate: "0.0",
                 minSlot,
                 maxSlot,
@@ -3364,7 +3798,8 @@ class SDIReportApp {
 
             this.instructors.push(newInst);
             this.selectedInstId = id;
-            this.showToast(`✅ تم تسجيل وتكويد ${isSupervisor ? 'المشرف' : (isFem ? 'المدربة' : 'المدرب')} الجديد (${shortName} - ${shiftCode}) بنجاح.`);
+            const roleLabel = isSupervisor ? 'المشرف' : (isAssistant ? 'مساعد المدرب' : (isFem ? 'المدربة' : 'المدرب'));
+            this.showToast(`✅ تم تسجيل وتكويد ${roleLabel} الجديد (${shortName} - ${shiftCode}) بنجاح.`);
         }
 
         // مزامنة فورية مع سجل الملاك التدريبي المعتمد SDIMasterRoster
@@ -3382,12 +3817,13 @@ class SDIReportApp {
             });
         }
 
-        if (!isSupervisor) {
+        if (!isFlex) {
             if (shift === 'S1') this.activePeriodFilter = 'morning';
             else if (shift === 'S2') this.activePeriodFilter = 'evening';
         }
 
-        this.syncStateWithServer(`تسجيل وتكويد ${isSupervisor ? 'المشرف' : 'المدرب'} (${shortName} - ${shiftCode})`);
+        const roleLabel = isSupervisor ? 'المشرف' : (isAssistant ? 'مساعد المدرب' : 'المدرب');
+        this.syncStateWithServer(`تسجيل وتكويد ${roleLabel} (${shortName} - ${shiftCode})`);
         this.clearTab4Form();
         this.refresh();
     }
@@ -3422,11 +3858,20 @@ class SDIReportApp {
         if (nameEl) nameEl.value = inst.name;
         if (idEl) idEl.value = inst.id;
         
-        const isSup = !!(inst.isSupervisor || inst.role === 'supervisor' || inst.shift === 'SUP');
-        if (roleEl) roleEl.value = isSup ? 'supervisor' : 'instructor';
+        const isSup = this.isSupervisor(inst);
+        const isAst = this.isAssistant(inst);
+        if (roleEl) {
+            if (isSup) roleEl.value = 'supervisor';
+            else if (isAst) roleEl.value = 'assistant';
+            else roleEl.value = 'instructor';
+        }
         if (genderEl) genderEl.value = (inst.gender === 'female') ? 'female' : 'male';
-        if (catEl) catEl.value = inst.category;
-        if (shiftEl) shiftEl.value = isSup ? 'SUP' : inst.shift;
+        if (catEl) catEl.value = (inst.category === 'LB' ? 'HB' : inst.category);
+        if (shiftEl) {
+            if (isSup) shiftEl.value = 'SUP';
+            else if (isAst) shiftEl.value = 'AST';
+            else shiftEl.value = inst.shift;
+        }
 
         if (titleEl) {
             titleEl.innerHTML = (this.lang === 'ar')
@@ -3451,48 +3896,68 @@ class SDIReportApp {
 
         inst.shift = targetShift;
         if (inst.category === 'MC') {
-            inst.shift = 'FIX';
-            inst.shiftCode = 'MC-FIX';
-            inst.shiftName = 'فترة ثابتة (6 - 17)';
-            inst.minSlot = 6;
-            inst.maxSlot = 17;
-        } else if (inst.category === 'HT') {
+            if (targetShift === 'S1') {
+                inst.shiftCode = 'MC-S1';
+                inst.shiftName = 'فترة صباحية - إدارة (1 - 13)';
+                inst.minSlot = 1;
+                inst.maxSlot = 13;
+                inst.capacity = 26; // 13 حصة يومياً
+            } else if (targetShift === 'S2') {
+                inst.shiftCode = 'MC-S2';
+                inst.shiftName = 'فترة مسائية - إدارة (14 - 26)';
+                inst.minSlot = 14;
+                inst.maxSlot = 26;
+                inst.capacity = 26; // 13 حصة يومياً
+            } else {
+                inst.shift = 'FIX';
+                inst.shiftCode = 'MC-FIX';
+                inst.shiftName = 'فترة الفرع (6 - 17)';
+                inst.minSlot = 6;
+                inst.maxSlot = 17;
+                inst.capacity = 24; // 12 حصة يومياً
+            }
+        } else if (inst.category === 'HB' || inst.category === 'HT' || inst.category === 'LB') {
+            const isBus = (inst.category === 'HB' || inst.category === 'LB');
+            const prefix = isBus ? 'HBFM' : 'HTFM';
+            inst.capacity = 24; // 12 حصة يومياً
             if (targetShift === 'S2') {
-                inst.shiftCode = 'HTFM-S2';
+                inst.shiftCode = `${prefix}-S2`;
                 inst.shiftName = 'الفترة الثانية (13 - 24)';
                 inst.minSlot = 13;
                 inst.maxSlot = 24;
             } else {
-                inst.shiftCode = 'HTFM-S1';
+                inst.shiftCode = `${prefix}-S1`;
                 inst.shiftName = 'الفترة الأولى (1 - 12)';
                 inst.minSlot = 1;
                 inst.maxSlot = 12;
             }
         } else {
+            // المركبات الخفيفة
             const isFem = (inst.gender === 'female');
+            const suffix = isFem ? '-F' : '';
             if (isFem) {
                 inst.capacity = 18;
                 if (targetShift === 'S2') {
-                    inst.shiftCode = `${inst.category}-S2-F`;
-                    inst.shiftName = 'الفترة الثانية (11 - 19) [سيدات 18 حصة]';
+                    inst.shiftCode = `${inst.category}-S2${suffix}`;
+                    inst.shiftName = 'الفترة الثانية سيدات (11 - 19) [9 حصص]';
                     inst.minSlot = 11;
                     inst.maxSlot = 19;
                 } else {
-                    inst.shiftCode = `${inst.category}-S1-F`;
-                    inst.shiftName = 'الفترة الأولى (1 - 9) [سيدات 18 حصة]';
+                    inst.shiftCode = `${inst.category}-S1${suffix}`;
+                    inst.shiftName = 'الفترة الأولى سيدات (1 - 9) [9 حصص]';
                     inst.minSlot = 1;
                     inst.maxSlot = 9;
                 }
             } else {
                 inst.capacity = 20;
                 if (targetShift === 'S2') {
-                    inst.shiftCode = `${inst.category}-S2`;
-                    inst.shiftName = 'الفترة الثانية (11 - 20) [20 حصة]';
+                    inst.shiftCode = `${inst.category}-S2${suffix}`;
+                    inst.shiftName = 'الفترة الثانية (11 - 20) [10 حصص]';
                     inst.minSlot = 11;
                     inst.maxSlot = 20;
                 } else {
-                    inst.shiftCode = `${inst.category}-S1`;
-                    inst.shiftName = 'الفترة الأولى (1 - 10) [20 حصة]';
+                    inst.shiftCode = `${inst.category}-S1${suffix}`;
+                    inst.shiftName = 'الفترة الأولى (1 - 10) [10 حصص]';
                     inst.minSlot = 1;
                     inst.maxSlot = 10;
                 }
@@ -3503,10 +3968,9 @@ class SDIReportApp {
             inst.slotsRows = SDIPdfParser.generateEmptySlotsRows(inst.fullSchedule, inst.category, inst.shift, inst.gender);
         }
 
-        const isFem = (inst.gender === 'female');
         const shiftAr = targetShift === 'S1' 
-            ? (isFem ? 'الفترة الصباحية للسيدات (1 إلى 9 - 9 حصص)' : 'الفترة الصباحية (1 إلى 10)') 
-            : (isFem ? 'الفترة المسائية للسيدات (11 إلى 19 - 9 حصص)' : 'الفترة المسائية (11 إلى 20)');
+            ? 'الفترة الصباحية' 
+            : (targetShift === 'S2' ? 'الفترة المسائية' : 'فترة الفرع');
         this.syncStateWithServer(`تحويل المدرب (${inst.shortName || inst.name}) إلى ${shiftAr}`);
         this.refresh();
         this.showToast(`تم تحويل المدرب (${inst.shortName || inst.name}) إلى: ${shiftAr} وإزالة الحصص الأخرى فورياً.`);
@@ -4738,7 +5202,8 @@ class SDIReportApp {
             ["مركبة خفيفة - جير عادي (LMFM)", stats.categories.LMFM.occ, stats.categories.LMFM.emp, stats.categories.LMFM.rate + "%"],
             ["مركبة خفيفة - أوتوماتيك (LMFA)", stats.categories.LMFA.occ, stats.categories.LMFA.emp, stats.categories.LMFA.rate + "%"],
             ["دراجة نارية (MC)", stats.categories.MC.occ, stats.categories.MC.emp, stats.categories.MC.rate + "%"],
-            ["شاحنة ثقيلة (HTFM)", stats.categories.HT.occ, stats.categories.HT.emp, stats.categories.HT.rate + "%"]
+            ["شاحنة ثقيلة (HTFM)", stats.categories.HT.occ, stats.categories.HT.emp, stats.categories.HT.rate + "%"],
+            ["باص ثقيل (HBFM)", (stats.categories.HB || stats.categories.LB) ? (stats.categories.HB || stats.categories.LB).occ : 0, (stats.categories.HB || stats.categories.LB) ? (stats.categories.HB || stats.categories.LB).emp : 0, ((stats.categories.HB || stats.categories.LB) ? (stats.categories.HB || stats.categories.LB).rate : "0.0") + "%"]
         ];
 
         const ws1 = XLSX.utils.aoa_to_sheet(kpiRows);

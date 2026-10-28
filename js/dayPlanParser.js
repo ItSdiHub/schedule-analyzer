@@ -530,21 +530,27 @@ const SDIDayPlanParser = {
             });
             plan.sessions = verifiedSessions;
 
-            // استيراد بيانات الملاك التدريبي المعتمد وقواعد المشرف
+            // استيراد بيانات الملاك التدريبي المعتمد وقواعد المشرف ومساعد المدرب
             if (typeof SDIMasterRoster !== 'undefined') {
                 const isSup = SDIMasterRoster.isSupervisor(plan);
+                const isAst = SDIMasterRoster.isAssistant ? SDIMasterRoster.isAssistant(plan) : false;
+                const isFlex = isSup || isAst;
                 const rosterEntry = SDIMasterRoster.find(plan.instructorId || plan.instructorName);
                 if (rosterEntry) {
                     plan.gender = rosterEntry.gender;
                     plan.role = rosterEntry.role;
                     plan.isSupervisor = (rosterEntry.role === 'supervisor' || rosterEntry.shift === 'SUP' || isSup);
+                    plan.isAssistant = (rosterEntry.role === 'assistant' || rosterEntry.shift === 'AST' || isAst);
+                    plan.shift = rosterEntry.shift;
                     plan.shiftCode = rosterEntry.shiftCode;
-                } else if (isSup) {
-                    plan.isSupervisor = true;
-                    plan.role = 'supervisor';
-                    plan.shift = 'SUP';
-                    const cat = plan.sessions[0]?.course?.startsWith('LMFA') ? 'LMFA' : (plan.sessions[0]?.course?.startsWith('MC') ? 'MC' : (plan.sessions[0]?.course?.startsWith('HT') ? 'HT' : 'LMFM'));
-                    plan.shiftCode = `SUP-${cat}`;
+                } else if (isFlex) {
+                    plan.isSupervisor = isSup;
+                    plan.isAssistant = isAst;
+                    plan.role = isAst ? 'assistant' : 'supervisor';
+                    plan.shift = isAst ? 'AST' : 'SUP';
+                    const firstCourse = plan.sessions[0]?.course || '';
+                    const cat = firstCourse.startsWith('LMFA') ? 'LMFA' : (firstCourse.startsWith('MC') ? 'MC' : (firstCourse.startsWith('HT') ? 'HT' : (firstCourse.startsWith('LB') ? 'LB' : 'LMFM')));
+                    plan.shiftCode = `${plan.shift}-${cat}`;
                 }
             }
 

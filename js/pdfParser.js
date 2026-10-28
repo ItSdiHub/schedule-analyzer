@@ -172,25 +172,34 @@ const SDIPdfParser = {
      */
     buildOfficialInstructorsFromParsed(parsedList) {
         return parsedList.map((p, index) => {
-            // 1. تحديد الفئة من كود الدورة (LMFM, LMFA, MC, HT) أو من الملاك المعتمد
+            const studentsList = Array.isArray(p.students) ? p.students : (Array.isArray(p.scheduleSlots) ? p.scheduleSlots.map(s => ({ slot: s.slotNumber || s.slot, days: (s.satStatus === 'occupied' && s.sunStatus === 'occupied') ? 'SAT-THU' : (s.satStatus === 'occupied' ? 'SAT-MON-WED' : (s.sunStatus === 'occupied' ? 'SUN-TUE-THU' : '')) })) : []);
+
+            // 1. تحديد الفئة من كود الدورة (LMFM, LMFA, MC, HT, LB) أو من الملاك المعتمد
             let category = "LMFM";
             let vehicleType = "خفيفة (LM)";
             let minSlot = 1;
             let maxSlot = 10;
 
-            const rosterEntry = (typeof SDIMasterRoster !== 'undefined') ? SDIMasterRoster.find(p.id || p.name) : null;
-            const isFem = rosterEntry ? (rosterEntry.gender === 'female') : false;
-            const isSup = rosterEntry ? (rosterEntry.role === 'supervisor' || rosterEntry.shift === 'SUP') : false;
+            const rosterEntry = (typeof SDIMasterRoster !== 'undefined') ? SDIMasterRoster.lookup(p.id || p.instructorId, p.name || p.instructorName) : null;
+            const isFem = (p.gender === 'female') || (rosterEntry ? (rosterEntry.gender === 'female') : false);
+            const isAst = rosterEntry ? (rosterEntry.role === 'assistant' || rosterEntry.shift === 'AST' || (typeof SDIMasterRoster !== 'undefined' && SDIMasterRoster.isAssistant && SDIMasterRoster.isAssistant(rosterEntry))) : false;
+            const isSup = rosterEntry ? (rosterEntry.role === 'supervisor' || rosterEntry.shift === 'SUP' || (typeof SDIMasterRoster !== 'undefined' && SDIMasterRoster.isSupervisor && SDIMasterRoster.isSupervisor(rosterEntry))) : false;
+            const isFlex = isAst || isSup;
 
-            const firstCourse = p.students[0]?.course || "";
+            const firstCourse = studentsList[0]?.course || p.courses?.[0] || p.course || "";
             if (/^LMFA/i.test(firstCourse)) {
                 category = "LMFA";
-                vehicleType = "خفيفة (LM)";
+                vehicleType = "خفيفة أوتوماتيك (LMFA)";
             } else if (/^MC/i.test(firstCourse)) {
                 category = "MC";
                 vehicleType = "دراجة نارية (MC)";
                 minSlot = 6;
                 maxSlot = 17;
+            } else if (/^(HB|HBFM|HBFA|LB|LBFM|LBFA)/i.test(firstCourse) || /bus/i.test(firstCourse)) {
+                category = "HB";
+                vehicleType = "باص ثقيل (HBFM)";
+                minSlot = 1;
+                maxSlot = 12;
             } else if (/^HT/i.test(firstCourse)) {
                 category = "HT";
                 vehicleType = "شاحنة ثقيلة (HT)";
@@ -203,55 +212,92 @@ const SDIPdfParser = {
             let shiftName = "الفترة الأولى (1 - 10)";
             let shiftCode = `${category}-S1`;
 
-            if (isSup) {
-                shift = "SUP";
-                shiftName = "مشرف (Supervisor) - تكليف عند الحاجة";
-                shiftCode = `SUP-${category}`;
+            if (isFlex) {
+                shift = isAst ? "AST" : "SUP";
+                shiftName = isAst ? "مساعد مدرب - جدول مرن (تكليف مباشر)" : "مشرف (Supervisor) - تكليف عند الحاجة";
+                shiftCode = `${shift}-${category}`;
                 minSlot = 1;
-                maxSlot = category === "HT" ? 24 : 20;
+                maxSlot = (category === "HT" || category === "HB" || category === "LB" || category === "MC") ? (category === "MC" ? 26 : 24) : 20;
             } else if (category === "MC") {
-                shift = "FIX";
-                shiftName = "فترة ثابتة (6 - 17)";
-                shiftCode = "MC-FIX";
-                minSlot = 6;
-                maxSlot = 17;
-            } else if (category === "HT") {
-                const maxSlotEncountered = p.students.length > 0 ? Math.max(...p.students.map(s => s.slot)) : 1;
+                // خوارزمية التوقع الذكية لحساب ورديات الدراجة النارية:
+                // - إذا كانت الحصص تبدأ من 6 أو تتراوح بين 6 و 17/18: وردية واحدة ثابتة بالفرع (FIX: 6 إلى 17)
+                // - إذا كانت الحصص تبدأ من 1 أو أقل من/تساوي 13: وردية أولى صباحية بالمركز الرئيسي (S1: 1 إلى 13)
+                // - إذا كانت الحصص تبدأ من 14 أو أكثر: وردية ثانية مسائية بالمركز الرئيسي (S2: 14 إلى 26)
+                const mcSlots = studentsList.map(s => s.slot).filter(s => typeof s === 'number' && !isNaN(s));
+                if (mcSlots.length > 0) {
+                    const minDetected = Math.min(...mcSlots);
+                    const maxDetected = Math.max(...mcSlots);
+                    if (minDetected >= 6 && maxDetected <= 18) {
+                        shift = "FIX";
+                        shiftName = "فترة ثابتة بالفرع (6 - 17) [12 حصة]";
+                        shiftCode = "MC-FIX";
+                        minSlot = 6;
+                        maxSlot = 17;
+                    } else if (minDetected <= 5 || (minDetected === 1 && maxDetected <= 13) || maxDetected <= 13) {
+                        shift = "S1";
+                        shiftName = "الفترة الأولى صباحي (1 - 13) [13 حصة]";
+                        shiftCode = "MC-S1";
+                        minSlot = 1;
+                        maxSlot = 13;
+                    } else if (minDetected >= 14 || maxDetected > 18) {
+                        shift = "S2";
+                        shiftName = "الفترة الثانية مسائي (14 - 26) [13 حصة]";
+                        shiftCode = "MC-S2";
+                        minSlot = 14;
+                        maxSlot = 26;
+                    } else {
+                        shift = rosterEntry?.shift || "FIX";
+                        if (shift === "S1") { minSlot = 1; maxSlot = 13; shiftCode = "MC-S1"; shiftName = "الفترة الأولى صباحي (1 - 13) [13 حصة]"; }
+                        else if (shift === "S2") { minSlot = 14; maxSlot = 26; shiftCode = "MC-S2"; shiftName = "الفترة الثانية مسائي (14 - 26) [13 حصة]"; }
+                        else { shift = "FIX"; minSlot = 6; maxSlot = 17; shiftCode = "MC-FIX"; shiftName = "فترة ثابتة بالفرع (6 - 17) [12 حصة]"; }
+                    }
+                } else {
+                    shift = rosterEntry?.shift || "FIX";
+                    if (shift === "S1") { minSlot = 1; maxSlot = 13; shiftCode = "MC-S1"; shiftName = "الفترة الأولى صباحي (1 - 13) [13 حصة]"; }
+                    else if (shift === "S2") { minSlot = 14; maxSlot = 26; shiftCode = "MC-S2"; shiftName = "الفترة الثانية مسائي (14 - 26) [13 حصة]"; }
+                    else { shift = "FIX"; minSlot = 6; maxSlot = 17; shiftCode = "MC-FIX"; shiftName = "فترة ثابتة بالفرع (6 - 17) [12 حصة]"; }
+                }
+            } else if (category === "HT" || category === "HB" || category === "LB") {
+                const maxSlotEncountered = studentsList.length > 0 ? Math.max(...studentsList.map(s => s.slot)) : 1;
+                const isHB = (category === "HB" || category === "LB");
+                const codePrefix = isHB ? "HBFM" : "HTFM";
+                const nameAr = isHB ? "باص ثقيل (HBFM)" : "شاحنة ثقيلة (HTFM)";
                 if (maxSlotEncountered > 12) {
                     shift = "S2";
-                    shiftName = "الفترة الثانية (13 - 24)";
-                    shiftCode = "HTFM-S2";
+                    shiftName = `الفترة الثانية (13 - 24) [12 حصة]`;
+                    shiftCode = `${codePrefix}-S2`;
                     minSlot = 13;
                     maxSlot = 24;
                 } else {
                     shift = "S1";
-                    shiftName = "الفترة الأولى (1 - 12)";
-                    shiftCode = "HTFM-S1";
+                    shiftName = `الفترة الأولى (1 - 12) [12 حصة]`;
+                    shiftCode = `${codePrefix}-S1`;
                     minSlot = 1;
                     maxSlot = 12;
                 }
             } else {
-                // مركبة خفيفة (LM)
-                const hasEvening = p.students.some(s => s.slot >= 11);
-                const hasMorning = p.students.some(s => s.slot <= 10);
-                const isS2 = (hasEvening && !hasMorning) || (p.students.length > 0 && Math.max(...p.students.map(s => s.slot)) > 10);
+                // مركبة خفيفة (LMFA / LMFM)
+                const hasEvening = studentsList.some(s => s.slot >= 11);
+                const hasMorning = studentsList.some(s => s.slot <= 10);
+                const isS2 = (hasEvening && !hasMorning) || (studentsList.length > 0 && Math.max(...studentsList.map(s => s.slot)) > 10) || (rosterEntry && rosterEntry.shift === 'S2');
 
                 if (isFem) {
-                    // قاعدة المدربات السيدات: 9 حصص يومياً (السعة 18 حصة)
+                    // جدول السيدات المعتمد: 9 حصص يومياً (18 حصة معتمدة في الويك إند: 1-9 صباحاً أو 11-19 مساءً)
                     if (isS2) {
                         shift = "S2";
-                        shiftName = "الفترة المسائية للسيدات (11 - 19) [9 حصص]";
+                        shiftName = "الفترة المسائية سيدات (11 - 19) [9 حصص]";
                         shiftCode = `${category}-S2-F`;
                         minSlot = 11;
                         maxSlot = 19;
                     } else {
                         shift = "S1";
-                        shiftName = "الفترة الصباحية للسيدات (1 - 9) [9 حصص]";
+                        shiftName = "الفترة الصباحية سيدات (1 - 9) [9 حصص]";
                         shiftCode = `${category}-S1-F`;
                         minSlot = 1;
                         maxSlot = 9;
                     }
                 } else {
+                    // جدول الذكور: 10 حصص يومياً (20 حصة معتمدة في الويك إند: 1-10 صباحاً أو 11-20 مساءً)
                     if (isS2) {
                         shift = "S2";
                         shiftName = "الفترة الثانية (11 - 20) [10 حصص]";
@@ -270,8 +316,8 @@ const SDIPdfParser = {
 
             // 3. بناء الجدول الكامل لجميع الحصص
             const fullSchedule = [];
-            const startSlot = (category === "MC") ? 6 : ((category === "HT" && shift === "S2") ? 13 : 1);
-            const endSlot = (category === "MC") ? 17 : ((category === "HT") ? 24 : 20);
+            const startSlot = (category === "MC") ? 1 : (((category === "HT" || category === "HB" || category === "LB") && shift === "S2") ? 13 : 1);
+            const endSlot = (category === "MC") ? 26 : ((category === "HT" || category === "HB" || category === "LB") ? 24 : 20);
 
             for (let s = startSlot; s <= endSlot; s++) {
                 fullSchedule.push({
@@ -283,21 +329,38 @@ const SDIPdfParser = {
                 });
             }
 
-            // 4. إسقاط حجوزات الطلاب
-            p.students.forEach(st => {
+            // 4. إسقاط حجوزات الطلاب مع تفاصيل الطالب
+            studentsList.forEach(st => {
                 const sObj = fullSchedule.find(s => s.slot === st.slot);
                 if (sObj) {
+                    const studentDetails = {
+                        studentName: st.name || st.studentName || '',
+                        studentId: st.id || st.studentId || '',
+                        course: st.course || category,
+                        location: st.location || (/Y/i.test(st.course || '') ? 'Y' : 'R'),
+                        isDouble: !!st.isDouble,
+                        classType: st.classType || 'R',
+                        isDoublePart1: !!st.isDoublePart1,
+                        isDoublePart2: !!st.isDoublePart2,
+                        time: st.time || '',
+                        isFixed: false
+                    };
+
                     if (st.days === "SAT-MON-WED") {
                         sObj.sat = "occupied";
                         sObj.origSat = "occupied";
+                        sObj.satDetails = Object.assign({}, studentDetails);
                     } else if (st.days === "SUN-TUE-THU") {
                         sObj.sun = "occupied";
                         sObj.origSun = "occupied";
-                    } else if (st.days === "SAT-THU") {
+                        sObj.sunDetails = Object.assign({}, studentDetails);
+                    } else if (st.days === "SAT-THU" || st.days === "DAILY" || st.days === "SAT-FRI" || st.days === "FRI-SAT") {
                         sObj.sat = "occupied";
                         sObj.origSat = "occupied";
                         sObj.sun = "occupied";
                         sObj.origSun = "occupied";
+                        sObj.satDetails = Object.assign({}, studentDetails);
+                        sObj.sunDetails = Object.assign({}, studentDetails);
                     }
                 }
             });
@@ -308,7 +371,7 @@ const SDIPdfParser = {
             let cap = 0;
             let rate = 0.0;
 
-            if (isSup) {
+            if (isFlex) {
                 fullSchedule.forEach(s => {
                     if (s.sat === "occupied") occCount++;
                     if (s.sun === "occupied") occCount++;
@@ -334,8 +397,10 @@ const SDIPdfParser = {
                 name: p.name,
                 shortName: p.shortName,
                 gender: isFem ? 'female' : 'male',
-                role: isSup ? 'supervisor' : 'instructor',
+                role: isFlex ? (isAst ? 'assistant' : 'supervisor') : 'instructor',
                 isSupervisor: isSup,
+                isAssistant: isAst,
+                isFlexible: isFlex,
                 category: category,
                 vehicleType: vehicleType,
                 shift: shift,
@@ -350,7 +415,8 @@ const SDIPdfParser = {
                 note: "",
                 reportPage: Math.floor(index / 2) + 1,
                 slotsRows: slotsRows,
-                fullSchedule: fullSchedule
+                fullSchedule: fullSchedule,
+                students: studentsList
             };
         });
     },
@@ -359,24 +425,22 @@ const SDIPdfParser = {
         let isFem = (gender === "female");
 
         if (typeof category === 'number') {
-            const minSlot = category;
-            const maxSlot = shift;
-            if (minSlot >= 11) {
+            const numMin = category;
+            const numMax = shift;
+            if (numMin >= 11) {
                 shift = 'S2';
                 category = 'LMFM';
-                isFem = (maxSlot === 19);
-            } else if (minSlot === 6 && maxSlot === 17) {
+            } else if (numMin === 6 && numMax === 17) {
                 category = 'MC';
                 shift = 'FIX';
             } else {
                 shift = 'S1';
                 category = 'LMFM';
-                isFem = (maxSlot === 9);
             }
         }
 
-        if (shift === 'SUP') {
-            // المشرف / السوبرفايزر: ليس لديه أي حصص فارغة
+        if (shift === 'SUP' || shift === 'AST') {
+            // المشرف ومساعد المدرب: جدول مرن وليس لديه أي حصص فارغة
             return [];
         }
 
@@ -403,72 +467,60 @@ const SDIPdfParser = {
 
         const rows = [];
 
+        let minSlot = 1;
+        let maxSlot = 10;
+
         if (category === "MC") {
-            // الدراجة النارية: الحصص من 6 إلى 17 فقط
-            list.filter(s => s.slot >= 6 && s.slot <= 17).forEach(s => {
-                if (s.sat === "empty" || s.sun === "empty") {
-                    rows.push({
-                        slotDisplay: String(s.slot),
-                        sat: s.sat === "occupied" ? "مشغولة" : "خالية",
-                        sun: s.sun === "occupied" ? "مشغولة" : "خالية"
-                    });
+            if (shift === "S1") {
+                minSlot = 1;
+                maxSlot = 13;
+            } else if (shift === "S2") {
+                minSlot = 14;
+                maxSlot = 26;
+            } else {
+                minSlot = 6;
+                maxSlot = 17;
+            }
+        } else if (category === "HT" || category === "HB" || category === "LB") {
+            if (shift === "S2") {
+                minSlot = 13;
+                maxSlot = 24;
+            } else {
+                minSlot = 1;
+                maxSlot = 12;
+            }
+        } else {
+            // مركبة خفيفة (LMFA / LMFM)
+            if (isFem) {
+                // جدول السيدات: 9 حصص يومياً (1 إلى 9 صباحاً أو 11 إلى 19 مساءً)
+                if (shift === "S2") {
+                    minSlot = 11;
+                    maxSlot = 19;
+                } else {
+                    minSlot = 1;
+                    maxSlot = 9;
                 }
-            });
-            return rows;
+            } else {
+                // جدول الذكور: 10 حصص يومياً (1 إلى 10 صباحاً أو 11 إلى 20 مساءً)
+                if (shift === "S2") {
+                    minSlot = 11;
+                    maxSlot = 20;
+                } else {
+                    minSlot = 1;
+                    maxSlot = 10;
+                }
+            }
         }
 
-        if (category === "HT") {
-            // الشاحنة الثقيلة: إزالة الحصص التي ليست في فترة عمله
-            if (shift === "S1") {
-                list.filter(s => s.slot >= 1 && s.slot <= 12).forEach(s => {
-                    if (s.sat === "empty" || s.sun === "empty") {
-                        rows.push({
-                            slotDisplay: String(s.slot),
-                            sat: s.sat === "occupied" ? "مشغولة" : "خالية",
-                            sun: s.sun === "occupied" ? "مشغولة" : "خالية"
-                        });
-                    }
-                });
-            } else {
-                list.filter(s => s.slot >= 13 && s.slot <= 24).forEach(s => {
-                    if (s.sat === "empty" || s.sun === "empty") {
-                        rows.push({
-                            slotDisplay: String(s.slot),
-                            sat: s.sat === "occupied" ? "مشغولة" : "خالية",
-                            sun: s.sun === "occupied" ? "مشغولة" : "خالية"
-                        });
-                    }
+        list.filter(s => s.slot >= minSlot && s.slot <= maxSlot).forEach(s => {
+            if (s.sat === "empty" || s.sun === "empty") {
+                rows.push({
+                    slotDisplay: String(s.slot),
+                    sat: s.sat === "occupied" ? "مشغولة" : "خالية",
+                    sun: s.sun === "occupied" ? "مشغولة" : "خالية"
                 });
             }
-            return rows;
-        }
-
-        // المركبة الخفيفة (LM): إزالة الحصص التي ليست في فترة عمله
-        if (shift === "S1") {
-            // الفترة الصباحية: الحصص 1 إلى 9 للسيدات، 1 إلى 10 للذكور
-            const maxSlotBound = isFem ? 9 : 10;
-            list.filter(s => s.slot >= 1 && s.slot <= maxSlotBound).forEach(s => {
-                if (s.sat === "empty" || s.sun === "empty") {
-                    rows.push({
-                        slotDisplay: String(s.slot),
-                        sat: s.sat === "occupied" ? "مشغولة" : "خالية",
-                        sun: s.sun === "occupied" ? "مشغولة" : "خالية"
-                    });
-                }
-            });
-        } else {
-            // الفترة المسائية: الحصص 11 إلى 19 للسيدات، 11 إلى 20 للذكور
-            const maxSlotBound = isFem ? 19 : 20;
-            list.filter(s => s.slot >= 11 && s.slot <= maxSlotBound).forEach(s => {
-                if (s.sat === "empty" || s.sun === "empty") {
-                    rows.push({
-                        slotDisplay: String(s.slot),
-                        sat: s.sat === "occupied" ? "مشغولة" : "خالية",
-                        sun: s.sun === "occupied" ? "مشغولة" : "خالية"
-                    });
-                }
-            });
-        }
+        });
 
         return rows;
     }

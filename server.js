@@ -82,7 +82,7 @@ if (fs.existsSync(STATE_FILE)) {
             }
             if (SDIMasterRoster && Array.isArray(appState.instructors)) {
                 appState.instructors.forEach(inst => {
-                    if (SDIMasterRoster.isSupervisor(inst)) {
+                    if (SDIMasterRoster.isFlexibleRole(inst)) {
                         SDIMasterRoster.pruneSupervisorSchedule(inst);
                     }
                 });
@@ -362,7 +362,7 @@ wss.on('connection', (ws, req) => {
                     appState.instructors = data.payload.instructors;
                     if (SDIMasterRoster && Array.isArray(appState.instructors)) {
                         appState.instructors.forEach(inst => {
-                            if (SDIMasterRoster.isSupervisor(inst)) {
+                            if (SDIMasterRoster.isFlexibleRole(inst)) {
                                 SDIMasterRoster.pruneSupervisorSchedule(inst);
                             }
                         });
